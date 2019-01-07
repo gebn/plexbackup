@@ -1,3 +1,4 @@
+// Package main implements a CLI frontend for the backup package.
 package main
 
 import (

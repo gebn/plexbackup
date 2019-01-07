@@ -1,3 +1,4 @@
+// Package backup creates and uploads Plex backups to S3.
 package backup
 
 import (
@@ -11,12 +12,25 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
+// Opts encapsulates parameters for backing up Plex's database.
 type Opts struct {
-	Service       string
+
+	// Service is the name of Plex's systemd unit, e.g. plexmediaserver.service
+	Service string
+
+	// AppSupportDir is the path to the 'Application Support' directory,
+	// containing the 'Plex Media Server' directory for backing up
 	AppSupportDir string
 
+	// Bucket is the name of the bucket to upload the backup to
 	Bucket string
+
+	// Region is the region of the bucket, used to connect to the
+	// correct region's endpoint
 	Region string
+
+	// Prefix is the path within the bucket to look for the old backup,
+	// and upload the new one to
 	Prefix string
 }
 
@@ -61,6 +75,8 @@ func findGzCommand() string {
 	return "gz"
 }
 
+// Run stops Plex, performs the backup, then starts Plex again.
+// It should ideally be run soon after the server maintenance period.
 func Run(svc *s3.S3, opts *Opts) error {
 	oldest, err := oldestObject(svc, opts.Bucket, opts.Prefix)
 	if err != nil {
