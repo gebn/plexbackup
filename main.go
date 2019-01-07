@@ -38,14 +38,14 @@ func main() {
 	}))
 	svc := s3.New(sess)
 
-	err := backup.Run(svc, &backup.Opts{
+	opts := &backup.Opts{
 		Service:       *service,
 		AppSupportDir: *directory,
 		Bucket:        *bucket,
 		Region:        *region,
 		Prefix:        *prefix,
-	})
-	if err != nil {
+	}
+	if err := opts.Run(svc); err != nil {
 		log.Fatal(err)
 	}
 }

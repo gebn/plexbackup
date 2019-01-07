@@ -77,8 +77,8 @@ func findGzCommand() string {
 
 // Run stops Plex, performs the backup, then starts Plex again.
 // It should ideally be run soon after the server maintenance period.
-func Run(svc *s3.S3, opts *Opts) error {
-	oldest, err := oldestObject(svc, opts.Bucket, opts.Prefix)
+func (o *Opts) Run(svc *s3.S3) error {
+	oldest, err := oldestObject(svc, o.Bucket, o.Prefix)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
 	}
@@ -120,10 +120,10 @@ func Run(svc *s3.S3, opts *Opts) error {
 		return fmt.Errorf("failed to start gz: %v", err)
 	}
 
-	key := calculateKey(opts.Prefix)
+	key := calculateKey(o.Prefix)
 	uploader := s3manager.NewUploaderWithClient(svc)
 	_, uploadErr := uploader.Upload(&s3manager.UploadInput{
-		Bucket: &opts.Bucket,
+		Bucket: &o.Bucket,
 		Key:    &key,
 		Body:   gzStdout,
 	})
@@ -143,7 +143,7 @@ func Run(svc *s3.S3, opts *Opts) error {
 
 	if oldest != nil {
 		_, err := svc.DeleteObject(&s3.DeleteObjectInput{
-			Bucket: &opts.Bucket,
+			Bucket: &o.Bucket,
 			Key:    oldest.Key,
 		})
 		if err != nil {
