@@ -8,30 +8,41 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-const (
-	region = "eu-west-2"
-	bucket = "backup.eu-west-2.thebrightons.co.uk"
-	prefix = "plex/newton/"
+var (
+	bucket = kingpin.Flag("bucket", "Bucket to upload to").
+		String()
+	region = kingpin.Flag("region", "Region of the S3 bucket").
+		Default("eu-west-2").
+		OverrideDefaultFromEnvar("AWS_REGION").
+		String()
+	prefix = kingpin.Flag("prefix", "Prefix to prepend to the backup object key").
+		Default("plex").
+		String()
 
-	plexService = "plexmediaserver.service"
-	plexDir     = "/var/lib/plexmediaserver/Library/Application Support"
+	service = kingpin.Flag("service", "Name of the Plex systemd unit").
+		Default("plexmediaserver.service").
+		String()
+	directory = kingpin.Flag("directory", "Location of the 'Application Support' directory").
+			Default("/var/lib/plexmediaserver/Library/Application Support").
+			ExistingDir()
 )
 
 func main() {
-	log.Printf("%v %v", aws.SDKName, aws.SDKVersion)
+	kingpin.Parse()
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(region),
+		Region: region,
 	}))
 	svc := s3.New(sess)
 
 	err := backup.Run(svc, &backup.Opts{
-		Service:       plexService,
-		AppSupportDir: plexDir,
-		Region:        region,
-		Bucket:        bucket,
-		Prefix:        prefix,
+		Service:       *service,
+		AppSupportDir: *directory,
+		Bucket:        *bucket,
+		Region:        *region,
+		Prefix:        *prefix,
 	})
 	if err != nil {
 		log.Fatal(err)

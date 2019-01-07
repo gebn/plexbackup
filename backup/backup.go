@@ -15,8 +15,8 @@ type Opts struct {
 	Service       string
 	AppSupportDir string
 
-	Region string
 	Bucket string
+	Region string
 	Prefix string
 }
 
