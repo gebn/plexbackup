@@ -13,20 +13,20 @@ import (
 )
 
 var (
-	bucket = kingpin.Flag("bucket", "Bucket to upload to").
+	bucket = kingpin.Flag("bucket", "Name of the S3 bucket to upload the backup to.").
 		String()
-	region = kingpin.Flag("region", "Region of the S3 bucket").
+	region = kingpin.Flag("region", "Region of the --bucket; defaults to eu-west-2, or AWS_REGION if set.").
 		Default("eu-west-2").
 		OverrideDefaultFromEnvar("AWS_REGION").
 		String()
-	prefix = kingpin.Flag("prefix", "Prefix to prepend to the backup object key").
+	prefix = kingpin.Flag("prefix", `Location within the bucket to upload to; a trailing slash is added if not present. The backup object is stored under this prefix as <RFC3339 date>.tar.xz, e.g. "2019-01-06T22:38:21Z.tar.xz".`).
 		Default("plex").
 		String()
 
-	service = kingpin.Flag("service", "Name of the Plex systemd unit").
+	service = kingpin.Flag("service", "Name of the Plex systemd unit to stop while the backup is performed.").
 		Default("plexmediaserver.service").
 		String()
-	directory = kingpin.Flag("directory", "Location of the 'Application Support' directory").
+	directory = kingpin.Flag("directory", "Location of the 'Application Support' directory, whose contents will be backed up.").
 			Default("/var/lib/plexmediaserver/Library/Application Support").
 			ExistingDir()
 )

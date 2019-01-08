@@ -16,10 +16,12 @@ The process is usually CPU-bound on the compression, so [`pigz`](https://zlib.ne
 
     Flags:
       --help                Show context-sensitive help (also try --help-long and --help-man).
-      --bucket=BUCKET       Bucket to upload to
-      --region="eu-west-2"  Region of the S3 bucket
-      --prefix="plex"       Prefix to prepend to the backup object key
+      --bucket=BUCKET       Name of the S3 bucket to upload the backup to.
+      --region="eu-west-2"  Region of the --bucket; defaults to eu-west-2, or AWS_REGION if set.
+      --prefix="plex"       Location within the bucket to upload to; a trailing slash is added if not present.
+                            The backup object is stored under this prefix as <RFC3339 date>.tar.xz, e.g.
+                            "2019-01-06T22:38:21Z.tar.xz".
       --service="plexmediaserver.service"  
-                            Name of the Plex systemd unit
+                            Name of the Plex systemd unit to stop while the backup is performed.
       --directory=/var/lib/plexmediaserver/Library/Application Support  
-                            Location of the 'Application Support' directory
+                            Location of the 'Application Support' directory, whose contents will be backed up.
