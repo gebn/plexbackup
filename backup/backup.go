@@ -18,9 +18,9 @@ type Opts struct {
 	// Service is the name of Plex's systemd unit, e.g. plexmediaserver.service
 	Service string
 
-	// AppSupportDir is the path to the 'Application Support' directory,
-	// containing the 'Plex Media Server' directory for backing up
-	AppSupportDir string
+	// Directory is the path to the 'Plex Media Server' directory, which will
+	// form the root directory of the produced backup.
+	Directory string
 
 	// Bucket is the name of the bucket to upload the backup to
 	Bucket string
@@ -89,11 +89,11 @@ func (o *Opts) Run(svc *s3.S3) error {
 
 	//tar := exec.Command(
 	//	"tar", "-cf", "-",
-	//	"-C", plexDir,
+	//	"-C", filepath.Dir(o.Directory),
 	//	"--exclude", "Cache",
 	//	"--exclude", "Crash Reports",
 	//	"--exclude", "Diagnostics",
-	//	"Plex Media Server")
+	//	filepath.Base(o.Directory)
 	tar := exec.Command(
 		"tar", "-cf", "-",
 		"-C", "/home/george/Documents",

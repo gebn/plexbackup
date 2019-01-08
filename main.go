@@ -26,8 +26,8 @@ var (
 	service = kingpin.Flag("service", "Name of the Plex systemd unit to stop while the backup is performed.").
 		Default("plexmediaserver.service").
 		String()
-	directory = kingpin.Flag("directory", "Location of the 'Application Support' directory, whose contents will be backed up.").
-			Default("/var/lib/plexmediaserver/Library/Application Support").
+	directory = kingpin.Flag("directory", "Location of the 'Plex Media Server' directory to back up.").
+			Default("/var/lib/plexmediaserver/Library/Application Support/Plex Media Server").
 			ExistingDir()
 )
 
@@ -39,11 +39,11 @@ func main() {
 	svc := s3.New(sess)
 
 	opts := &backup.Opts{
-		Service:       *service,
-		AppSupportDir: *directory,
-		Bucket:        *bucket,
-		Region:        *region,
-		Prefix:        *prefix,
+		Service:   *service,
+		Directory: *directory,
+		Bucket:    *bucket,
+		Region:    *region,
+		Prefix:    *prefix,
 	}
 	if err := opts.Run(svc); err != nil {
 		log.Fatal(err)
