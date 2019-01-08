@@ -8,7 +8,6 @@ env:
     - BAZEL_VERSION=0.21.0
 before_install:
   - |
-    sysctl kernel.unprivileged_userns_clone=1
     wget -O install.sh "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh"
     chmod +x install.sh
     ./install.sh --user
