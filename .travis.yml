@@ -11,6 +11,7 @@ before_install:
     wget -O install.sh "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh"
     chmod +x install.sh
     ./install.sh --user
+    bazel shutdown  # prevents "WARNING: Running Bazel server needs to be killed, because the startup options are different."
     rm -f install.sh
 script:
   - |
