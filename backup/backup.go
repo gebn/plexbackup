@@ -68,11 +68,9 @@ func calculateKey(prefix string) string {
 // is available, it is prefered, otherwise we fall back on gz, assuming it
 // exists.
 func findGzCommand() string {
-	if path, err := exec.LookPath("pigz"); err == nil {
-		log.Printf("found pigz at %v", path)
+	if _, err := exec.LookPath("pigz"); err == nil {
 		return "pigz"
 	}
-	log.Println("pigz not found; falling back to gz")
 	return "gz"
 }
 
