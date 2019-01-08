@@ -7,7 +7,7 @@ This tool backs up [Plex](https://www.plex.tv)'s server data and uploads it to S
 The entire `Plex Media Server` directory (sans `Cache`) is snapshotted, stopping the server beforehand and restarting it after to ensure consistency.
 The directory is `tar`ed, `gz`ipped and uploaded without writing any data to disk.
 The tool is envisaged to be run as a cron job, preferably soon after the configured maintenance period.
-As the latest instance types have 2 or more cores, [`pigz`](https://zlib.net/pigz/) will be used in place of `gz` if available on the `$PATH`.
+The process is usually CPU-bound on the compression, so [`pigz`](https://zlib.net/pigz/) will be used in place of `gz` if available on the `$PATH`.
 
 ## Usage
 
