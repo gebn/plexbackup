@@ -113,6 +113,8 @@ func (o *Opts) Run(svc *s3.S3) error {
 		return fmt.Errorf("failed to get stdout from gz: %v", err)
 	}
 
+	start := time.Now()
+
 	if err = tar.Start(); err != nil {
 		return fmt.Errorf("failed to start tar: %v", err)
 	}
@@ -137,9 +139,13 @@ func (o *Opts) Run(svc *s3.S3) error {
 		return fmt.Errorf("failed to wait for tar: %v", err)
 	}
 
+	elapsed := time.Since(start)
+
 	if uploadErr != nil {
 		return fmt.Errorf("failed to upload new backup: %v", uploadErr)
 	}
+
+	log.Printf("Completed backup in %v", elapsed.Round(time.Millisecond))
 
 	if oldest != nil {
 		_, err := svc.DeleteObject(&s3.DeleteObjectInput{
