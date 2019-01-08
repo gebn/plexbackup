@@ -6,6 +6,7 @@ import (
 	"log"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -87,20 +88,13 @@ func (o *Opts) Run(svc *s3.S3) error {
 	//	return fmt.Errorf("failed to stop plex: %v", err)
 	//}
 
-	//tar := exec.Command(
-	//	"tar", "-cf", "-",
-	//	"-C", filepath.Dir(o.Directory),
-	//	"--exclude", "Cache",
-	//	"--exclude", "Crash Reports",
-	//	"--exclude", "Diagnostics",
-	//	filepath.Base(o.Directory)
 	tar := exec.Command(
 		"tar", "-cf", "-",
-		"-C", "/home/george/Documents",
+		"-C", filepath.Dir(o.Directory),
 		"--exclude", "Cache",
 		"--exclude", "Crash Reports",
 		"--exclude", "Diagnostics",
-		"debian")
+		filepath.Base(o.Directory))
 
 	gz := exec.Command(findGzCommand(), "-c")
 	gz.Stdin, err = tar.StdoutPipe()
