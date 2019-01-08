@@ -20,5 +20,7 @@ script:
       --host_jvm_args=-Xms8000m \
       build \
       --config=ci \
+      --noshow_progress \
+      --noshow_loading_progress \
       --local_resources=8500,2,1.0 \
       :plexbackup
