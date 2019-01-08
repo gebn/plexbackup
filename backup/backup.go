@@ -3,6 +3,7 @@ package backup
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os/exec"
 	"path"
@@ -119,7 +120,9 @@ func (o *Opts) Run(svc *s3.S3) error {
 	_, uploadErr := uploader.Upload(&s3manager.UploadInput{
 		Bucket: &o.Bucket,
 		Key:    &key,
-		Body:   gzStdout,
+		Body: struct {
+			io.Reader
+		}{gzStdout},
 	})
 
 	//if err = exec.Command("systemctl", "start", plexService).Run(); err != nil {
