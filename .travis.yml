@@ -1,8 +1,5 @@
 sudo: false
 language: go
-cache:
-  directories:
-  - $HOME/.cache/bazel
 env:
   global:
     - BAZEL_VERSION=0.21.0
