@@ -139,7 +139,7 @@ func (o *Opts) Run(svc *s3.S3) error {
 		return fmt.Errorf("failed to upload new backup: %v", uploadErr)
 	}
 
-	log.Printf("Completed backup in %v", elapsed.Round(time.Millisecond))
+	log.Printf("Completed backup to %v in %v", key, elapsed.Round(time.Millisecond))
 
 	if oldest != nil {
 		_, err := svc.DeleteObject(&s3.DeleteObjectInput{
