@@ -14,6 +14,7 @@ import (
 
 var (
 	bucket = kingpin.Flag("bucket", "Name of the S3 bucket to upload the backup to.").
+		Required().
 		String()
 	region = kingpin.Flag("region", "Region of the --bucket; defaults to eu-west-2, or AWS_REGION if set.").
 		Default("eu-west-2").
