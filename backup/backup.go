@@ -156,6 +156,9 @@ func (o *Opts) Run(svc *s3.S3) error {
 		}{gzStdout},
 	})
 
+	// we could have deferred this after stopping plex, however this would not allow us
+	// to report an error - this way the caller can be confident Plex is running if they
+	// get back a nil error
 	if !o.NoPause {
 		if err = exec.Command("sudo", "systemctl", "start", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to start plex: %v", err)
@@ -181,6 +184,7 @@ func (o *Opts) Run(svc *s3.S3) error {
 			Key:    oldest.Key,
 		})
 		if err != nil {
+			// not regarded as significant enough to report
 			log.Printf("Failed to delete %v: %v\n", oldest, err)
 		}
 	}
