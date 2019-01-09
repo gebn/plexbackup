@@ -23,5 +23,5 @@ The process is usually CPU-bound on the compression, so [`pigz`](https://zlib.ne
                             "2019-01-06T22:38:21Z.tar.xz".
       --service="plexmediaserver.service"  
                             Name of the Plex systemd unit to stop while the backup is performed.
-      --directory=/var/lib/plexmediaserver/Library/Application Support  
-                            Location of the 'Application Support' directory, whose contents will be backed up.
+      --directory=/var/lib/plexmediaserver/Library/Application Support/Plex Media Server
+                            Location of the 'Plex Media Server' directory to back up.
