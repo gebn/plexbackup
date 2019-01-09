@@ -1,4 +1,27 @@
-// Package backup creates and uploads Plex backups to S3.
+// Package backup creates and uploads Plex Media Server backups to S3.
+//
+// Example
+//
+// The following snippet shows how to perform a vanilla backup. Plex will be stopped before
+// the backup begins, and started again after it finishes.
+//
+//   region := "eu-west-2"
+//
+//   sess := session.Must(session.NewSession(&aws.Config{
+//   	Region: region,
+//   }))
+//   svc := s3.New(sess)
+//
+//   opts := &backup.Opts{
+//   	Service:   "plexmediaserver.service",
+//   	Directory: "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server",
+//   	Bucket:    "eu-west-2.backups.thebrightons.co.uk",
+//   	Region:    region,
+//   	Prefix:    "plex/newton/",
+//   }
+//   if err := opts.Run(svc); err != nil {
+//   	log.Fatal(err)
+//   }
 package backup
 
 import (
