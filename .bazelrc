@@ -1,6 +1,5 @@
 build:check --all_incompatible_changes
 
-common:ci --color=no
 build:ci --verbose_failures
 build:ci --sandbox_debug
 build:ci --spawn_strategy=standalone
