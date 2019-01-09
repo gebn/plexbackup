@@ -156,6 +156,11 @@ func (o *Opts) Run(svc *s3.S3) error {
 		}{gzStdout},
 	})
 
+	// TODO unclear whether this is necessary; the example uses it
+	if err = tar.Wait(); err != nil {
+		return fmt.Errorf("failed to wait for tar: %v", err)
+	}
+
 	// we could have deferred this after stopping plex, however this would not allow us
 	// to report an error - this way the caller can be confident Plex is running if they
 	// get back a nil error
@@ -163,11 +168,6 @@ func (o *Opts) Run(svc *s3.S3) error {
 		if err = exec.Command("sudo", "systemctl", "start", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to start plex: %v", err)
 		}
-	}
-
-	// TODO unclear whether this is necessary; the example uses it
-	if err = tar.Wait(); err != nil {
-		return fmt.Errorf("failed to wait for tar: %v", err)
 	}
 
 	elapsed := time.Since(start)
