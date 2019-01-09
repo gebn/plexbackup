@@ -17,6 +17,12 @@ import (
 // Opts encapsulates parameters for backing up Plex's database.
 type Opts struct {
 
+	// NoPause takes the backup without stopping Plex. The server will remain
+	// available throughout, but the backup may be unusable.
+	// It is specified negatively in order to default to false, which is the
+	// recommended setting.
+	NoPause bool
+
 	// Service is the name of Plex's systemd unit, e.g. plexmediaserver.service
 	Service string
 
@@ -83,9 +89,11 @@ func (o *Opts) Run(svc *s3.S3) error {
 		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
 	}
 
-	//if err = exec.Command("systemctl", "stop", plexService).Run(); err != nil {
-	//	return fmt.Errorf("failed to stop plex: %v", err)
-	//}
+	if !o.NoPause {
+		if err = exec.Command("sudo", "systemctl", "stop", o.Service).Run(); err != nil {
+			return fmt.Errorf("failed to stop plex: %v", err)
+		}
+	}
 
 	tar := exec.Command(
 		"tar", "-cf", "-",
@@ -125,9 +133,11 @@ func (o *Opts) Run(svc *s3.S3) error {
 		}{gzStdout},
 	})
 
-	//if err = exec.Command("systemctl", "start", plexService).Run(); err != nil {
-	//	return fmt.Errorf("failed to start plex: %v", err)
-	//}
+	if !o.NoPause {
+		if err = exec.Command("sudo", "systemctl", "start", o.Service).Run(); err != nil {
+			return fmt.Errorf("failed to start plex: %v", err)
+		}
+	}
 
 	// TODO unclear whether this is necessary; the example uses it
 	if err = tar.Wait(); err != nil {

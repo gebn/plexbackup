@@ -23,6 +23,8 @@ var (
 		Default("plex/").
 		String()
 
+	noPause = kingpin.Flag("no-pause", "Do not stop Plex while the backup is performed. This is not recommended, as it risks an inconsistent backup.").
+		Bool()
 	service = kingpin.Flag("service", "Name of the Plex systemd unit to stop while the backup is performed.").
 		Default("plexmediaserver.service").
 		String()
@@ -39,6 +41,7 @@ func main() {
 	svc := s3.New(sess)
 
 	opts := &backup.Opts{
+		NoPause:   !*noPause,
 		Service:   *service,
 		Directory: *directory,
 		Bucket:    *bucket,
