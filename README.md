@@ -3,9 +3,9 @@
 [![Build Status](https://travis-ci.org/gebn/plexbackup.svg?branch=master)](https://travis-ci.org/gebn/plexbackup)
 [![GoDoc](https://godoc.org/github.com/gebn/plexbackup?status.svg)](https://godoc.org/github.com/gebn/plexbackup)
 
-This tool backs up [Plex](https://www.plex.tv)'s server data and uploads it to S3.
+This tool backs up [Plex](https://www.plex.tv)'s server data to S3.
 The entire `Plex Media Server` directory (sans `Cache`) is snapshotted, stopping the server beforehand and restarting it after to ensure consistency.
-The directory is `tar`ed, `gz`ipped and uploaded without writing any data to disk.
+It is `tar`red, `gz`ipped then piped to S3 without writing to disk.
 The tool is envisaged to be run as a cron job, preferably soon after the configured maintenance period.
 The process is usually CPU-bound on the compression, so [`pigz`](https://zlib.net/pigz/) will be used in place of `gz` if available on the `$PATH`.
 
