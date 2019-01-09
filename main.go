@@ -20,7 +20,7 @@ var (
 		OverrideDefaultFromEnvar("AWS_REGION").
 		String()
 	prefix = kingpin.Flag("prefix", `Location within the bucket to upload to; a trailing slash is added if not present. The backup object is stored under this prefix as <RFC3339 date>.tar.xz, e.g. "2019-01-06T22:38:21Z.tar.xz".`).
-		Default("plex").
+		Default("plex/").
 		String()
 
 	service = kingpin.Flag("service", "Name of the Plex systemd unit to stop while the backup is performed.").
