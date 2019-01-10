@@ -16,9 +16,8 @@ var (
 	bucket = kingpin.Flag("bucket", "Name of the S3 bucket to upload the backup to.").
 		Required().
 		String()
-	region = kingpin.Flag("region", "Region of the --bucket; defaults to eu-west-2, or AWS_REGION if set.").
-		Default("eu-west-2").
-		OverrideDefaultFromEnvar("AWS_REGION").
+	region = kingpin.Flag("region", "Region of the --bucket.").
+		Required().
 		String()
 	prefix = kingpin.Flag("prefix", `Location within the bucket to upload to. This will be suffixed with <RFC3339 date>.tar.gz, e.g. "2019-01-06T22:38:21Z.tar.gz".`).
 		Default("plex/").

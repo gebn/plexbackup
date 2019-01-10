@@ -22,18 +22,17 @@ Assuming a vanilla installation, this can be made to work by allowing the `plex`
 ## Usage
 
     $ plexbackup --help
-    usage: plexbackup [<flags>]
+    usage: plexbackup --bucket=BUCKET --region=REGION [<flags>]
 
     Flags:
-      --help                Show context-sensitive help (also try --help-long and --help-man).
-      --bucket=BUCKET       Name of the S3 bucket to upload the backup to.
-      --region="eu-west-2"  Region of the --bucket; defaults to eu-west-2, or AWS_REGION if set.
-      --prefix="plex/"      Location within the bucket to upload to; a trailing slash is added if not present.
-                            The backup object is stored under this prefix as <RFC3339 date>.tar.xz, e.g.
-                            "2019-01-06T22:38:21Z.tar.xz".
-      --no-pause            Do not stop Plex while the backup is performed. This is not recommended, as it risks
-                            an inconsistent backup.
+      --help            Show context-sensitive help (also try --help-long and --help-man).
+      --bucket=BUCKET   Name of the S3 bucket to upload the backup to.
+      --region=REGION   Region of the --bucket.
+      --prefix="plex/"  Location within the bucket to upload to. This will be suffixed with <RFC3339
+                        date>.tar.gz, e.g. "2019-01-06T22:38:21Z.tar.gz".
+      --no-pause        Do not stop Plex while the backup is performed. This is not recommended, as it
+                        risks an inconsistent backup.
       --service="plexmediaserver.service"  
-                            Name of the Plex systemd unit to stop while the backup is performed.
+                        Name of the Plex systemd unit to stop while the backup is performed.
       --directory=/var/lib/plexmediaserver/Library/Application Support/Plex Media Server
-                            Location of the 'Plex Media Server' directory to back up.
+                        Location of the 'Plex Media Server' directory to back up.
