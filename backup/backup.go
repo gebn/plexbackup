@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -126,8 +127,10 @@ func (o *Opts) Run(svc *s3.S3) error {
 		"--exclude", "Diagnostics",
 		"--exclude", "plexmediaserver.pid",
 		filepath.Base(o.Directory))
+	tar.Stderr = os.Stderr
 
 	gz := exec.Command(findGzCommand(), "-c")
+	gz.Stderr = os.Stderr
 	gz.Stdin, err = tar.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("failed to get stdout from tar: %v", err)
