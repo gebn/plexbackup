@@ -124,6 +124,7 @@ func (o *Opts) Run(svc *s3.S3) error {
 		"--exclude", "Cache",
 		"--exclude", "Crash Reports",
 		"--exclude", "Diagnostics",
+		"--exclude", "plexmediaserver.pid",
 		filepath.Base(o.Directory))
 
 	gz := exec.Command(findGzCommand(), "-c")
