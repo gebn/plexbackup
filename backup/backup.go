@@ -160,9 +160,11 @@ func (o *Opts) Run(svc *s3.S3) error {
 		}{gzStdout},
 	})
 
-	// TODO unclear whether this is necessary; the example uses it
+	if err = gz.Wait(); err != nil {
+		return fmt.Errorf("gz completed improperly: %v", err)
+	}
 	if err = tar.Wait(); err != nil {
-		return fmt.Errorf("failed to wait for tar: %v", err)
+		return fmt.Errorf("tar completed improperly: %v", err)
 	}
 
 	// we could have deferred this after stopping plex, however this would not allow us
