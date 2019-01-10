@@ -46,22 +46,28 @@ type Opts struct {
 	// recommended setting.
 	NoPause bool
 
-	// Service is the name of Plex's systemd unit, e.g. plexmediaserver.service
+	// Service is the name of Plex's systemd unit, e.g. plexmediaserver.service,
+	// which will be stopped while the backup is performed, and started again
+	// after it completes.
 	Service string
 
 	// Directory is the path to the 'Plex Media Server' directory, which will
 	// form the root directory of the produced backup.
 	Directory string
 
-	// Bucket is the name of the bucket to upload the backup to
+	// Bucket is the name of the S3 bucket to upload the backup to.
 	Bucket string
 
-	// Region is the region of the bucket, used to connect to the
-	// correct region's endpoint
+	// Region is the region of the Bucket, used to connect to the correct
+	// endpoint.
 	Region string
 
-	// Prefix is the path within the bucket to look for the old backup,
-	// and upload the new one to
+	// Prefix is prepended to "<RFC3339 date>.tar.gz" to form the path of the
+	// backup object, e.g. "2019-01-06T22:38:21Z.tar.gz". N.B. no slash is
+	// automatically added to the end of the prefix.
+	// This is also the prefix under which we query for old backups - if it
+	// changes, unless the new value is a prefix of the old one, the previous
+	// backup will not be discovered and deleted by this tool.
 	Prefix string
 }
 
