@@ -30,7 +30,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -92,7 +91,7 @@ func oldestObject(svc *s3.S3, bucket, prefix string) (*s3.Object, error) {
 // be piped in, e.g. tar -xzf - < name:with:colons.tar.xz.
 func calculateKey(prefix string) string {
 	now := time.Now().UTC()
-	return path.Join(prefix, now.Format(time.RFC3339)+".tar.gz")
+	return prefix + now.Format(time.RFC3339) + ".tar.gz"
 }
 
 // gzCommand determines the correct implementation of gzip to use: if pigz
