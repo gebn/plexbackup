@@ -5,10 +5,8 @@
 // The following snippet shows how to perform a vanilla backup. Plex will be stopped before
 // the backup begins, and started again after it finishes.
 //
-//   region := "eu-west-2"
-//
 //   sess := session.Must(session.NewSession(&aws.Config{
-//   	Region: region,
+//   	Region: "eu-west-2",
 //   }))
 //   svc := s3.New(sess)
 //
@@ -16,7 +14,6 @@
 //   	Service:   "plexmediaserver.service",
 //   	Directory: "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server",
 //   	Bucket:    "eu-west-2.backups.thebrightons.co.uk",
-//   	Region:    region,
 //   	Prefix:    "plex/newton/",
 //   }
 //   if err := opts.Run(svc); err != nil {
@@ -57,10 +54,6 @@ type Opts struct {
 
 	// Bucket is the name of the S3 bucket to upload the backup to.
 	Bucket string
-
-	// Region is the region of the Bucket, used to connect to the correct
-	// endpoint.
-	Region string
 
 	// Prefix is prepended to "<RFC3339 date>.tar.gz" to form the path of the
 	// backup object, e.g. "2019-01-06T22:38:21Z.tar.gz". N.B. no slash is

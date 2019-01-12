@@ -45,7 +45,6 @@ func main() {
 		Service:   *service,
 		Directory: *directory,
 		Bucket:    *bucket,
-		Region:    *region,
 		Prefix:    *prefix,
 	}
 	if err := opts.Run(svc); err != nil {
