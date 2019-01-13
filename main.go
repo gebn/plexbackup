@@ -30,7 +30,7 @@ var (
 		String()
 	directory = kingpin.Flag("directory", "Location of the 'Plex Media Server' directory to back up.").
 			Default("/var/lib/plexmediaserver/Library/Application Support/Plex Media Server").
-			ExistingDir()
+			String()
 )
 
 func main() {

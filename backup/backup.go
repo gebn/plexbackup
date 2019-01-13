@@ -98,6 +98,14 @@ func findGzCommand() string {
 // Run stops Plex, performs the backup, then starts Plex again.
 // It should ideally be run soon after the server maintenance period.
 func (o *Opts) Run(svc *s3.S3) error {
+	fi, err := os.Stat(o.Directory)
+	if err != nil {
+		return err
+	}
+	if !fi.IsDir() {
+		return fmt.Errorf("%v is not a directory", o.Directory)
+	}
+
 	oldest, err := oldestObject(svc, o.Bucket, o.Prefix)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
