@@ -34,5 +34,6 @@ Assuming a vanilla installation, this can be made to work by allowing the `plex`
                         risks an inconsistent backup.
       --service="plexmediaserver.service"  
                         Name of the Plex systemd unit to stop while the backup is performed.
-      --directory=/var/lib/plexmediaserver/Library/Application Support/Plex Media Server
+      --directory="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"
                         Location of the 'Plex Media Server' directory to back up.
+      --version         Show application version.
