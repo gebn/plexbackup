@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["code.go"],
+    importpath = "github.com/gebn/plexbackup/stamp/code",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "Commit": "{STABLE_GIT_COMMIT}",
+        "Branch": "{STABLE_GIT_BRANCH}",
+        "Describe": "{STABLE_GIT_DESCRIBE}",
+    },
+)

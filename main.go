@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gebn/plexbackup/backup"
+	"github.com/gebn/plexbackup/stamp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -34,6 +35,7 @@ var (
 )
 
 func main() {
+	kingpin.Version(stamp.String())
 	kingpin.Parse()
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region: region,

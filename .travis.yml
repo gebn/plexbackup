@@ -23,6 +23,7 @@ script:
       --noshow_loading_progress \
       --local_resources=8500,2,1.0 \
       :plexbackup
+  - bazel-bin/linux_amd64_stripped/plexbackup --version
 deploy:
   provider: releases
   file: bazel-bin/linux_amd64_stripped/plexbackup
