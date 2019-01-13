@@ -85,14 +85,6 @@ func oldestObject(svc *s3.S3, bucket, prefix string) (*s3.Object, error) {
 	return oldest, nil
 }
 
-// calculateKey returns the location to upload the new backup to.
-// N.B. tar interprets names containing colons as network locations, so it must
-// be piped in, e.g. tar -xzf - < name:with:colons.tar.xz.
-func calculateKey(prefix string) string {
-	now := time.Now().UTC()
-	return prefix + now.Format(time.RFC3339) + ".tar.gz"
-}
-
 // gzCommand determines the correct implementation of gzip to use: if pigz
 // is available, it is prefered, otherwise we fall back on gz, assuming it
 // exists.
@@ -148,7 +140,9 @@ func (o *Opts) Run(svc *s3.S3) error {
 		return fmt.Errorf("failed to start gz: %v", err)
 	}
 
-	key := calculateKey(o.Prefix)
+	// N.B. tar interprets names containing colons as network locations, so it must
+	// be piped in, e.g. tar -xzf - < name:with:colons.tar.xz.
+	key := o.Prefix + time.Now().UTC().Format(time.RFC3339) + ".tar.gz"
 	uploader := s3manager.NewUploaderWithClient(svc)
 	_, uploadErr := uploader.Upload(&s3manager.UploadInput{
 		Bucket: &o.Bucket,
