@@ -14,13 +14,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_too
 go_rules_dependencies()
 go_register_toolchains()
 
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 gazelle_dependencies()
 
-load("@bazel_gazelle//:deps.bzl", "go_repository")
 go_repository(
     name = "com_github_aws_aws_sdk_go",
-    tag = "v1.16.14",
+    tag = "v1.16.18",
     importpath = "github.com/aws/aws-sdk-go",
 )
 go_repository(
