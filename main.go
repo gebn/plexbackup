@@ -41,7 +41,7 @@ func main() {
 	svc := s3.New(sess)
 
 	opts := &backup.Opts{
-		NoPause:   !*noPause,
+		NoPause:   *noPause,
 		Service:   *service,
 		Directory: *directory,
 		Bucket:    *bucket,
