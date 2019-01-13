@@ -19,8 +19,12 @@ Regardless of how the job runs, it requires list, put and delete permissions on 
         "Statement": [
             {
                 "Effect": "Allow",
+                "Action": "s3:ListBucket",
+                "Resource": "arn:aws:s3:::<bucket>"
+            },
+            {
+                "Effect": "Allow",
                 "Action": [
-                    "s3:ListBucket",
                     "s3:PutObject",
                     "s3:DeleteObject"
                 ],
