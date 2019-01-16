@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/gebn/plexbackup.svg?branch=master)](https://travis-ci.org/gebn/plexbackup)
 [![GoDoc](https://godoc.org/github.com/gebn/plexbackup?status.svg)](https://godoc.org/github.com/gebn/plexbackup)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gebn/plexbackup)](https://goreportcard.com/report/github.com/gebn/plexbackup)
 
 This tool backs up the [`Plex Media Server`](https://www.plex.tv) directory (sans `Cache`) to S3.
 It is `tar`red, `gz`ipped and uploaded without writing to disk.
