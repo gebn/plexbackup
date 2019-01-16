@@ -95,28 +95,23 @@ func findGzCommand() string {
 	return "gz"
 }
 
-// Run stops Plex, performs the backup, then starts Plex again.
-// It should ideally be run soon after the server maintenance period.
-func (o *Opts) Run(svc *s3.S3) error {
-	fi, err := os.Stat(o.Directory)
+// validateDir ensures a path exists and points to a directory. Note the
+// inherent race condition here - this is so we can hopefully produce a more
+// useful error message, sooner.
+func validateDir(path string) error {
+	fi, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
 	if !fi.IsDir() {
-		return fmt.Errorf("%v is not a directory", o.Directory)
+		return fmt.Errorf("%v is not a directory", path)
 	}
+	return nil
+}
 
-	oldest, err := oldestObject(svc, o.Bucket, o.Prefix)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
-	}
-
-	if !o.NoPause {
-		if err = exec.Command("sudo", "systemctl", "stop", o.Service).Run(); err != nil {
-			return fmt.Errorf("failed to stop plex: %v", err)
-		}
-	}
-
+// backup performs the actual archive, compression and upload of the backup. It
+// blocks until the operation is complete.
+func (o *Opts) backup(svc *s3.S3) error {
 	tar := exec.Command(
 		"tar", "-cf", "-",
 		"-C", filepath.Dir(o.Directory),
@@ -129,6 +124,7 @@ func (o *Opts) Run(svc *s3.S3) error {
 
 	gz := exec.Command(findGzCommand(), "-c")
 	gz.Stderr = os.Stderr
+	var err error
 	gz.Stdin, err = tar.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("failed to get stdout from tar: %v", err)
@@ -167,6 +163,40 @@ func (o *Opts) Run(svc *s3.S3) error {
 		return fmt.Errorf("tar completed improperly: %v", err)
 	}
 
+	if uploadErr != nil {
+		return fmt.Errorf("failed to upload new backup: %v", uploadErr)
+	}
+
+	elapsed := time.Since(start)
+	log.Printf("Completed backup to %v in %v", key, elapsed.Round(time.Millisecond))
+
+	return nil
+}
+
+// Run stops Plex, performs the backup, then starts Plex again.
+// It should ideally be run soon after the server maintenance period.
+func (o *Opts) Run(svc *s3.S3) error {
+	err := validateDir(o.Directory)
+	if err != nil {
+		return err
+	}
+
+	oldest, err := oldestObject(svc, o.Bucket, o.Prefix)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
+	}
+
+	if !o.NoPause {
+		if err = exec.Command("sudo", "systemctl", "stop", o.Service).Run(); err != nil {
+			return fmt.Errorf("failed to stop plex: %v", err)
+		}
+	}
+
+	err = o.backup(svc)
+	if err != nil {
+		return err
+	}
+
 	// we could have deferred this after stopping plex, however this would not allow us
 	// to report an error - this way the caller can be confident Plex is running if they
 	// get back a nil error
@@ -175,14 +205,6 @@ func (o *Opts) Run(svc *s3.S3) error {
 			return fmt.Errorf("failed to start plex: %v", err)
 		}
 	}
-
-	elapsed := time.Since(start)
-
-	if uploadErr != nil {
-		return fmt.Errorf("failed to upload new backup: %v", uploadErr)
-	}
-
-	log.Printf("Completed backup to %v in %v", key, elapsed.Round(time.Millisecond))
 
 	if oldest != nil {
 		_, err := svc.DeleteObject(&s3.DeleteObjectInput{
@@ -194,5 +216,6 @@ func (o *Opts) Run(svc *s3.S3) error {
 			log.Printf("Failed to delete %v: %v\n", oldest, err)
 		}
 	}
+
 	return nil
 }
