@@ -4,6 +4,7 @@ package build
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -21,8 +22,8 @@ var (
 	// is a form that is easier to work with.
 	Timestamp string
 
-	// TODO Go string
-	// TODO Compiler string
+	// Runtime is the version of the Go used to build the library.
+	Runtime = runtime.Version()
 )
 
 // Time returns the Timestamp string in its native representation.
@@ -36,5 +37,6 @@ func Time() time.Time {
 
 // String returns a human-readable summary of the build metadata.
 func String() string {
-	return fmt.Sprintf("%v@%v on %v", User, Host, Time().Format(time.RFC3339))
+	return fmt.Sprintf("built with %v by %v@%v on %v", Runtime, User,
+		Host, Time().Format(time.RFC3339))
 }
