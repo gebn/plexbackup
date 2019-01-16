@@ -86,7 +86,7 @@ func oldestObject(svc *s3.S3, bucket, prefix string) (*s3.Object, error) {
 }
 
 // gzCommand determines the correct implementation of gzip to use: if pigz
-// is available, it is prefered, otherwise we fall back on gz, assuming it
+// is available, it is preferred, otherwise we fall back on gz, assuming it
 // exists.
 func findGzCommand() string {
 	if _, err := exec.LookPath("pigz"); err == nil {
