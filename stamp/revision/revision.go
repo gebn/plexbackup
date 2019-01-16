@@ -1,7 +1,7 @@
-// Package code embeds information about the code contained in this
-// library, including the commit identifier, branch name, and
+// Package revision embeds information about the revision contained
+// in this library, including the commit identifier, branch name, and
 // description of the version (e.g. tag name).
-package code
+package revision
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ var (
 	Describe string
 )
 
-// String returns a human-readable summary of the code metadata.
+// String returns a human-readable summary of the revision metadata.
 func String() string {
 	return fmt.Sprintf("%v (%v, %v)", Describe, Commit, Branch)
 }

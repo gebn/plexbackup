@@ -7,6 +7,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//stamp/build:go_default_library",
-        "//stamp/code:go_default_library",
+        "//stamp/revision:go_default_library",
     ],
 )
