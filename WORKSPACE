@@ -16,6 +16,11 @@ load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 gazelle_dependencies()
 
 go_repository(
+    name = "com_github_gebn_go_stamp",
+    commit = "810b8c5846be228396fcc85dba20908c49ef4d77",
+    importpath = "github.com/gebn/go-stamp",
+)
+go_repository(
     name = "com_github_aws_aws_sdk_go",
     tag = "v1.16.18",
     importpath = "github.com/aws/aws-sdk-go",
