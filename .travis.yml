@@ -2,7 +2,7 @@ sudo: false
 language: go
 env:
   global:
-    - BAZEL_VERSION=0.21.0
+    - BAZEL_VERSION=0.22.0
 before_install:
   - |
     wget -O install.sh "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh"
