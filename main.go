@@ -35,7 +35,7 @@ var (
 )
 
 func main() {
-	kingpin.Version(stamp.String())
+	kingpin.Version(stamp.Summary())
 	kingpin.Parse()
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region: region,
