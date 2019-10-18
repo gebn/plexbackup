@@ -94,20 +94,6 @@ func findGzCommand() string {
 	return "gz"
 }
 
-// validateDir ensures a path exists and points to a directory. Note the
-// inherent race condition here - this is so we can hopefully produce a more
-// useful error message, sooner.
-func validateDir(path string) error {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-	if !fi.IsDir() {
-		return fmt.Errorf("%v is not a directory", path)
-	}
-	return nil
-}
-
 // backup performs the actual archive, compression and upload of the backup. It
 // blocks until the operation is complete.
 func (o *Opts) backup(svc *s3.S3) error {
@@ -175,11 +161,6 @@ func (o *Opts) backup(svc *s3.S3) error {
 // Run stops Plex, performs the backup, then starts Plex again. It should
 // ideally be run soon after the server maintenance period.
 func (o *Opts) Run(svc *s3.S3) error {
-	err := validateDir(o.Directory)
-	if err != nil {
-		return err
-	}
-
 	oldest, err := oldestObject(svc, o.Bucket, o.Prefix)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
