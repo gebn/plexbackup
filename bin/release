@@ -22,7 +22,16 @@ main() {
     echo "Creating $VERSION binaries for ${#PLATFORMS[@]} platforms in $output_dir..."
     for platform in "${PLATFORMS[@]}"; do
         IFS=',' read toolchain binary platform <<< "$platform"
-        bazel build "$TARGET" --platforms "${TOOLCHAIN_PREFIX}$toolchain"
+        bazel \
+          --host_jvm_args=-Xmx7000m \
+          --host_jvm_args=-Xms7000m \
+          build \
+          --config=ci \
+          --noshow_progress \
+          --noshow_loading_progress \
+          --local_resources=7500,2,1.0 \
+          "$TARGET" \
+          --platforms "${TOOLCHAIN_PREFIX}$toolchain"
         mv "bazel-bin/${toolchain}_static_pure_stripped/${binary}" "$output_dir/$NAME-$VERSION-$platform"
     done
 }
