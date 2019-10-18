@@ -1,42 +1,59 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_archive(
     name = "io_bazel_rules_go",
-    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.1/rules_go-0.18.1.tar.gz"],
-    sha256 = "77dfd303492f2634de7a660445ee2d3de2960cbd52f97d8c0dffa9362d3ddef9",
+    sha256 = "842ec0e6b4fbfdd3de6150b61af92901eeb73681fd4d185746644c338f51d4c0",
+    urls = [
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/v0.20.1/rules_go-v0.20.1.tar.gz",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.20.1/rules_go-v0.20.1.tar.gz",
+    ],
 )
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+go_rules_dependencies()
+
+go_register_toolchains()
+
 http_archive(
     name = "bazel_gazelle",
-    urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
-    sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
+    sha256 = "41bff2a0b32b02f20c227d234aa25ef3783998e5453f7eade929704dcff7cd4b",
+    urls = [
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.0/bazel-gazelle-v0.19.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.0/bazel-gazelle-v0.19.0.tar.gz",
+    ],
 )
-load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-go_rules_dependencies()
-go_register_toolchains()
+
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
 gazelle_dependencies()
 
 go_repository(
     name = "com_github_gebn_go_stamp",
-    tag = "v2.0.0",
     importpath = "github.com/gebn/go-stamp",
+    tag = "v2.0.2",
 )
+
 go_repository(
     name = "com_github_aws_aws_sdk_go",
-    tag = "v1.18.3",
     importpath = "github.com/aws/aws-sdk-go",
+    tag = "v1.25.16",
 )
+
 go_repository(
     name = "com_github_alecthomas_kingpin",
-    tag = "v2.2.6",
     importpath = "gopkg.in/alecthomas/kingpin.v2",
+    tag = "v2.2.6",
 )
+
 go_repository(
     name = "com_github_alecthomas_units",
-    commit = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a",  # master as of 2015-10-22
+    commit = "f65c72e2690dc4b403c8bd637baf4611cd4c069b",
     importpath = "github.com/alecthomas/units",
 )
+
 go_repository(
     name = "com_github_alecthomas_template",
-    commit = "a0175ee3bccc567396460bf5acd36800cb10c49c",  # master as of 2016-04-05
+    commit = "fb15b899a75114aa79cc930e33c46b577cc664b1",
     importpath = "github.com/alecthomas/template",
 )
