@@ -30,6 +30,7 @@ before_deploy:
   - bin/release out
 deploy:
   provider: releases
+  edge: true
   file_glob: true
   file: out/*
   token:
