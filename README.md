@@ -77,3 +77,10 @@ This will be used in place of `gz` if available on the `$PATH`, and can give a g
       --directory="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"
                         Location of the 'Plex Media Server' directory to back up.
       --version         Show application version.
+
+## Why gzip?
+
+`xz` was also [tested](https://github.com/gebn/plexbackup/issues/16), however the reduction in backup size was dwarfed by the increase in compression time.
+In my environment, the network is relatively fast and the CPU is relatively slow, so this tool was designed with that in mind.
+The additional downtime of Plex and CPU credits consumed was deemed not worth it, especially when storage is so cheap.
+If your circumstances are different and you'd like the option of using `xz`, please feel free to submit a pull request!
