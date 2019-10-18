@@ -4,10 +4,9 @@
 [![GoDoc](https://godoc.org/github.com/gebn/plexbackup?status.svg)](https://godoc.org/github.com/gebn/plexbackup)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gebn/plexbackup)](https://goreportcard.com/report/github.com/gebn/plexbackup)
 
-This tool backs up the [`Plex Media Server`](https://www.plex.tv) directory (sans `Cache`) to S3.
-It is `tar`red, `gz`ipped and uploaded without writing to disk.
-The tool is envisaged to be run as a cron job, preferably soon after the configured maintenance period.
-The process is usually CPU-bound on the compression, so [`pigz`](https://zlib.net/pigz/) will be used in place of `gz` if available on the `$PATH`.
+Backs up the [`Plex Media Server`](https://www.plex.tv) directory to S3.
+Intended to run as a cron job, ideally soon after the configured maintenance period.
+The directory (excluding `Cache`) is passed through `tar` and `gzip`, then uploaded, without writing to disk.
 
 ## Setup
 
@@ -55,7 +54,10 @@ Add a line similar to the following to the `plex` user's crontab:
     22 6 * * * /opt/plexbackup/plexbackup --bucket backup.eu-west-2.thebrightons.co.uk --region eu-west-2 --prefix plex/newton- 2> /your/log/file
 
 Choose a time that doesn't overlap with the server's background task hours. The best time to run the backup is soon after these tasks have finished.
-N.B. logs are written to `stderr`, not `stdout`.
+Note logs are written to `stderr`, rather than `stdout`.
+
+If you have a relatively underpowered machine but a fast network, consider installing [`pigz`](https://zlib.net/pigz/).
+This will be used in place of `gz` if available on the `$PATH`, and can give a good speed boost if bottlenecking on the compression.
 
 ## Usage
 
