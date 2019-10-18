@@ -2,8 +2,8 @@
 //
 // Example
 //
-// The following snippet shows how to perform a vanilla backup. Plex will be stopped before
-// the backup begins, and started again after it finishes.
+// The following snippet shows how to perform a vanilla backup. Plex will be
+// stopped before the backup begins, and started again after it finishes.
 //
 //   sess := session.Must(session.NewSession(&aws.Config{
 //   	Region: "eu-west-2",
@@ -38,9 +38,9 @@ import (
 type Opts struct {
 
 	// NoPause takes the backup without stopping Plex. The server will remain
-	// available throughout, but the backup may be unusable.
-	// It is specified negatively in order to default to false, which is the
-	// recommended setting.
+	// available throughout, but the backup may be unusable. It is specified
+	// negatively in order to default to false, which is the recommended
+	// setting.
 	NoPause bool
 
 	// Service is the name of Plex's systemd unit, e.g. plexmediaserver.service,
@@ -57,10 +57,10 @@ type Opts struct {
 
 	// Prefix is prepended to "<RFC3339 date>.tar.gz" to form the path of the
 	// backup object, e.g. "2019-01-06T22:38:21Z.tar.gz". N.B. no slash is
-	// automatically added to the end of the prefix.
-	// This is also the prefix under which we query for old backups - if it
-	// changes, unless the new value is a prefix of the old one, the previous
-	// backup will not be discovered and deleted by this tool.
+	// automatically added to the end of the prefix. This is also the prefix
+	// under which we query for old backups - if it changes, unless the new
+	// value is a prefix of the old one, the previous backup will not be
+	// discovered and deleted by this tool.
 	Prefix string
 }
 
@@ -85,9 +85,8 @@ func oldestObject(svc *s3.S3, bucket, prefix string) (*s3.Object, error) {
 	return oldest, nil
 }
 
-// gzCommand determines the correct implementation of gzip to use: if pigz
-// is available, it is preferred, otherwise we fall back on gz, assuming it
-// exists.
+// gzCommand determines the correct implementation of gzip to use: if pigz is
+// available, it is preferred, otherwise we fall back on gz, assuming it exists.
 func findGzCommand() string {
 	if _, err := exec.LookPath("pigz"); err == nil {
 		return "pigz"
@@ -144,8 +143,8 @@ func (o *Opts) backup(svc *s3.S3) error {
 		return fmt.Errorf("failed to start gz: %v", err)
 	}
 
-	// N.B. tar interprets names containing colons as network locations, so it must
-	// be piped in, e.g. tar -xzf - < name:with:colons.tar.xz.
+	// N.B. tar interprets names containing colons as network locations, so it
+	// must be piped in, e.g. tar -xzf - < name:with:colons.tar.xz.
 	key := o.Prefix + time.Now().UTC().Format(time.RFC3339) + ".tar.gz"
 	uploader := s3manager.NewUploaderWithClient(svc)
 	_, uploadErr := uploader.Upload(&s3manager.UploadInput{
@@ -173,8 +172,8 @@ func (o *Opts) backup(svc *s3.S3) error {
 	return nil
 }
 
-// Run stops Plex, performs the backup, then starts Plex again.
-// It should ideally be run soon after the server maintenance period.
+// Run stops Plex, performs the backup, then starts Plex again. It should
+// ideally be run soon after the server maintenance period.
 func (o *Opts) Run(svc *s3.S3) error {
 	err := validateDir(o.Directory)
 	if err != nil {
@@ -197,9 +196,9 @@ func (o *Opts) Run(svc *s3.S3) error {
 		return err
 	}
 
-	// we could have deferred this after stopping plex, however this would not allow us
-	// to report an error - this way the caller can be confident Plex is running if they
-	// get back a nil error
+	// we could have deferred this after stopping plex, however this would not
+	// allow us to report an error - this way the caller can be confident Plex
+	// is running if they get back a nil error
 	if !o.NoPause {
 		if err = exec.Command("sudo", "systemctl", "start", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to start plex: %v", err)
