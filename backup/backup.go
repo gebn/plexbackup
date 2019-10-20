@@ -23,15 +23,21 @@ package backup
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
 
+	"github.com/gebn/plexbackup/internal/pkg/countingreader"
+
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+)
+
+const (
+	// gibibyteBytes is the number of bytes in a GiB.
+	gibibyteBytes = 1024 * 1024 * 1024
 )
 
 // Opts encapsulates parameters for backing up Plex's database.
@@ -133,12 +139,11 @@ func (o *Opts) backup(svc *s3.S3) error {
 	// must be piped in, e.g. tar -xzf - < name:with:colons.tar.xz.
 	key := o.Prefix + time.Now().UTC().Format(time.RFC3339) + ".tar.gz"
 	uploader := s3manager.NewUploaderWithClient(svc)
+	reader := countingreader.New(gzStdout)
 	_, uploadErr := uploader.Upload(&s3manager.UploadInput{
 		Bucket: &o.Bucket,
 		Key:    &key,
-		Body: struct {
-			io.Reader
-		}{gzStdout},
+		Body:   reader,
 	})
 
 	if err = gz.Wait(); err != nil {
@@ -153,7 +158,9 @@ func (o *Opts) backup(svc *s3.S3) error {
 	}
 
 	elapsed := time.Since(start)
-	log.Printf("Completed backup to %v in %v", key, elapsed.Round(time.Millisecond))
+	gib := float64(reader.ReadBytes) / float64(gibibyteBytes)
+	log.Printf("Backed up %.3f GiB to %v in %v",
+		gib, key, elapsed.Round(time.Millisecond))
 
 	return nil
 }
