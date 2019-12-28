@@ -16,12 +16,13 @@
 //   	Bucket:    "eu-west-2.backups.thebrightons.co.uk",
 //   	Prefix:    "plex/newton/",
 //   }
-//   if err := backup.Run(svc, opts); err != nil {
+//   if err := backup.Run(context.Background(), svc, opts); err != nil {
 //   	log.Fatal(err)
 //   }
 package backup
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -73,8 +74,8 @@ type Opts struct {
 // oldestObject returns the object with the oldest LastModified attribute within
 // a given bucket under a given prefix, or nil if no objects exist there. It
 // assumes the prefix contains <=1000 objects (no pagination is attempted).
-func oldestObject(svc *s3.S3, bucket, prefix string) (*s3.Object, error) {
-	result, err := svc.ListObjects(&s3.ListObjectsInput{
+func oldestObject(ctx context.Context, svc *s3.S3, bucket, prefix string) (*s3.Object, error) {
+	result, err := svc.ListObjectsWithContext(ctx, &s3.ListObjectsInput{
 		Bucket: &bucket,
 		Prefix: &prefix,
 	})
@@ -102,8 +103,8 @@ func findGzCommand() string {
 
 // backup performs the actual archive, compression and upload of the backup. It
 // blocks until the operation is complete.
-func (o *Opts) backup(svc *s3.S3) error {
-	tar := exec.Command(
+func (o *Opts) backup(ctx context.Context, svc *s3.S3) error {
+	tar := exec.CommandContext(ctx,
 		"tar", "-cf", "-",
 		"-C", filepath.Dir(o.Directory),
 		"--exclude", "Cache",
@@ -113,7 +114,7 @@ func (o *Opts) backup(svc *s3.S3) error {
 		filepath.Base(o.Directory))
 	tar.Stderr = os.Stderr
 
-	gz := exec.Command(findGzCommand(), "-c")
+	gz := exec.CommandContext(ctx, findGzCommand(), "-c")
 	gz.Stderr = os.Stderr
 	var err error
 	gz.Stdin, err = tar.StdoutPipe()
@@ -140,7 +141,7 @@ func (o *Opts) backup(svc *s3.S3) error {
 	key := o.Prefix + time.Now().UTC().Format(time.RFC3339) + ".tar.gz"
 	uploader := s3manager.NewUploaderWithClient(svc)
 	reader := countingreader.New(gzStdout)
-	_, uploadErr := uploader.Upload(&s3manager.UploadInput{
+	_, uploadErr := uploader.UploadWithContext(ctx, &s3manager.UploadInput{
 		Bucket: &o.Bucket,
 		Key:    &key,
 		Body:   reader,
@@ -167,20 +168,19 @@ func (o *Opts) backup(svc *s3.S3) error {
 
 // Run stops Plex, performs the backup, then starts Plex again. It should
 // ideally be run soon after the server maintenance period.
-func Run(svc *s3.S3, o *Opts) error {
-	oldest, err := oldestObject(svc, o.Bucket, o.Prefix)
+func Run(ctx context.Context, svc *s3.S3, o *Opts) error {
+	oldest, err := oldestObject(ctx, svc, o.Bucket, o.Prefix)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
 	}
 
 	if !o.NoPause {
-		if err = exec.Command("sudo", "systemctl", "stop", o.Service).Run(); err != nil {
+		if err = exec.CommandContext(ctx, "sudo", "systemctl", "stop", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to stop plex: %v", err)
 		}
 	}
 
-	err = o.backup(svc)
-	if err != nil {
+	if err = o.backup(ctx, svc); err != nil {
 		return err
 	}
 
@@ -188,13 +188,13 @@ func Run(svc *s3.S3, o *Opts) error {
 	// allow us to report an error - this way the caller can be confident Plex
 	// is running if they get back a nil error
 	if !o.NoPause {
-		if err = exec.Command("sudo", "systemctl", "start", o.Service).Run(); err != nil {
+		if err = exec.CommandContext(ctx, "sudo", "systemctl", "start", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to start plex: %v", err)
 		}
 	}
 
 	if oldest != nil {
-		_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+		_, err := svc.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
 			Bucket: &o.Bucket,
 			Key:    oldest.Key,
 		})

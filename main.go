@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/gebn/plexbackup/backup"
@@ -49,7 +50,7 @@ func main() {
 		Bucket:    *bucket,
 		Prefix:    *prefix,
 	}
-	if err := backup.Run(svc, opts); err != nil {
+	if err := backup.Run(context.Background(), svc, opts); err != nil {
 		log.Fatal(err)
 	}
 }
