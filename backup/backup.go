@@ -44,7 +44,7 @@ const (
 // Opts encapsulates parameters for backing up Plex's database.
 type Opts struct {
 
-	// NoPause takes the backup without stopping Plex. The server will remain
+	// NoPause performs the backup without stopping Plex. The server will remain
 	// available throughout, but the backup may be unusable. It is specified
 	// negatively in order to default to false, which is the recommended
 	// setting.
