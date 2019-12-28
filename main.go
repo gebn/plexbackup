@@ -49,7 +49,7 @@ func main() {
 		Bucket:    *bucket,
 		Prefix:    *prefix,
 	}
-	if err := opts.Run(svc); err != nil {
+	if err := backup.Run(svc, opts); err != nil {
 		log.Fatal(err)
 	}
 }

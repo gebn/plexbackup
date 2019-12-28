@@ -16,7 +16,7 @@
 //   	Bucket:    "eu-west-2.backups.thebrightons.co.uk",
 //   	Prefix:    "plex/newton/",
 //   }
-//   if err := opts.Run(svc); err != nil {
+//   if err := backup.Run(svc, opts); err != nil {
 //   	log.Fatal(err)
 //   }
 package backup
@@ -167,7 +167,7 @@ func (o *Opts) backup(svc *s3.S3) error {
 
 // Run stops Plex, performs the backup, then starts Plex again. It should
 // ideally be run soon after the server maintenance period.
-func (o *Opts) Run(svc *s3.S3) error {
+func Run(svc *s3.S3, o *Opts) error {
 	oldest, err := oldestObject(svc, o.Bucket, o.Prefix)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
