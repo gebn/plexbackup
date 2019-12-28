@@ -160,7 +160,7 @@ func (o *Opts) backup(ctx context.Context, svc *s3.S3) error {
 
 	elapsed := time.Since(start)
 	gib := float64(reader.ReadBytes) / float64(gibibyteBytes)
-	log.Printf("Backed up %.3f GiB to %v in %v",
+	log.Printf("backed up %.3f GiB to %v in %v",
 		gib, key, elapsed.Round(time.Millisecond))
 
 	return nil
@@ -200,7 +200,7 @@ func Run(ctx context.Context, svc *s3.S3, o *Opts) error {
 		})
 		if err != nil {
 			// not regarded as significant enough to report
-			log.Printf("Failed to delete %v: %v\n", oldest, err)
+			log.Printf("failed to delete %v: %v\n", oldest, err)
 		}
 	}
 
