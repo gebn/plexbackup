@@ -37,12 +37,18 @@ go_repository(
 go_repository(
     name = "com_github_aws_aws_sdk_go",
     importpath = "github.com/aws/aws-sdk-go",
-    tag = "v1.26.8",
+    tag = "v1.29.13",
+)
+
+go_repository(
+    name = "com_github_jmespath_go_jmespath",
+    commit = "c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5",
+    importpath = "github.com/jmespath/go-jmespath",
 )
 
 go_repository(
     name = "com_github_alecthomas_kingpin",
-    importpath = "gopkg.in/alecthomas/kingpin.v2",
+    importpath = "github.com/alecthomas/kingpin",
     tag = "v2.2.6",
 )
 

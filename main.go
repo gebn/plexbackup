@@ -7,11 +7,11 @@ import (
 
 	"github.com/gebn/plexbackup/backup"
 
+	"github.com/alecthomas/kingpin"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gebn/go-stamp"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
