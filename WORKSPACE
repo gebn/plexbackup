@@ -63,3 +63,9 @@ go_repository(
     commit = "fb15b899a75114aa79cc930e33c46b577cc664b1",
     importpath = "github.com/alecthomas/template",
 )
+
+go_repository(
+    name = "org_golang_x_sys",
+    commit = "5766fd39f98ddd8d769ad4aedcee557dd28de90f",
+    importpath = "golang.org/x/sys",
+)
