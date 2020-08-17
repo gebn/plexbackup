@@ -4,35 +4,26 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-readonly NAME=plexbackup
-readonly TARGET="//:$NAME"
-
 readonly PLATFORMS=(
-    # <Bazel toolchain name>,<output binary name>,<suffix for binary>
-	linux_amd64,$NAME,linux-x86_64
-	windows_amd64,$NAME.exe,windows-x86_64.exe
-	darwin_amd64,$NAME,darwin-x86_64
+    linux_amd64
+    linux_arm
+    linux_arm64
+    windows_amd64
+    darwin_amd64
 )
-
-readonly VERSION=$(git describe --always --tags --dirty)
-readonly TOOLCHAIN_PREFIX="@io_bazel_rules_go//go/toolchain:"
+readonly DESCRIBE=$(git describe --always --tags --dirty)
+readonly VERSION=${DESCRIBE#v}
 
 main() {
     local output_dir="$1"
-    echo "Creating $VERSION binaries for ${#PLATFORMS[@]} platforms in $output_dir..."
-    for platform in "${PLATFORMS[@]}"; do
-        IFS=',' read toolchain binary suffix <<< "$platform"
-        bazel \
-          --host_jvm_args=-Xmx7000m \
-          --host_jvm_args=-Xms7000m \
-          build \
-          --config=ci \
-          --noshow_progress \
-          --noshow_loading_progress \
-          --local_resources=7500,2,1.0 \
-          "$TARGET" \
-          --platforms "${TOOLCHAIN_PREFIX}$toolchain"
-        mv "bazel-bin/${toolchain}_static_pure_stripped/${binary}" "$output_dir/$NAME-$VERSION-$suffix"
+    echo "Creating $VERSION binaries for ${#PLATFORMS[@]} platforms in $output_dir"
+    for toolchain in "${PLATFORMS[@]}"; do
+        echo "Building for $toolchain"
+        bazel build \
+          --config ci \
+          --platforms "@io_bazel_rules_go//go/toolchain:${toolchain}" \
+          //:archive
+        mv "$(bazel info bazel-bin)/archive.tar.gz" "${output_dir}/plexbackup-${VERSION}-${toolchain}.tar.gz"
     done
 }
 
