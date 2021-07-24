@@ -13,7 +13,7 @@
 //   opts := &backup.Opts{
 //   	Service:   "plexmediaserver.service",
 //   	Directory: "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server",
-//   	Bucket:    "eu-west-2.backups.thebrightons.co.uk",
+//   	Bucket:    "thebrightons-backup-euw2",
 //   	Prefix:    "plex/newton/",
 //   }
 //   if err := backup.Run(context.Background(), svc, opts); err != nil {

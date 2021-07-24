@@ -51,7 +51,7 @@ Assuming a vanilla installation, this can be made to work by allowing the `plex`
 Download the [latest release](https://github.com/gebn/plexbackup/releases/latest) to `/opt/plexbackup/` on the Plex server.
 Open the `plex` user's crontab with `crontab -eu plex` as root. Add a line similar to the following:
 
-    22 6 * * * /opt/plexbackup/plexbackup --bucket backup.eu-west-2.thebrightons.co.uk --region eu-west-2 --prefix plex/newton- 2>> /your/log/file
+    22 6 * * * /opt/plexbackup/plexbackup --bucket thebrightons-backup-euw2 --region eu-west-2 --prefix plex/newton- 2>> /your/log/file
 
 Choose a time that doesn't overlap with the server's background task hours. The best time to run the backup is soon after these tasks have finished.
 Note logs are written to `stderr`, rather than `stdout`.
