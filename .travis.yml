@@ -1,10 +1,9 @@
 os: linux
-dist: focal
 language: shell  # Bazel downloads its own Go SDK
 env:
   global:
-  - BAZEL_VERSION=3.4.1
-  - BAZEL_SHA256=9808adad931ac652e8ff5022a74507c532250c2091d21d6aebc7064573669cc5
+  - BAZEL_VERSION=4.1.0
+  - BAZEL_SHA256=e3f08054165be0a5e90779654b0e5c68d262ae794407d6347cdc6e8d05fafaaf
 before_install:
 - |
   wget -O install.sh "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh"
