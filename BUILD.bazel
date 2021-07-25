@@ -6,23 +6,23 @@ load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 gazelle(name = "gazelle")
 
 go_library(
-    name = "go_default_library",
+    name = "plexbackup_lib",
     srcs = ["main.go"],
     importpath = "github.com/gebn/plexbackup",
     visibility = ["//visibility:private"],
     deps = [
-        "//backup:go_default_library",
-        "@com_github_alecthomas_kingpin//:go_default_library",
-        "@com_github_aws_aws_sdk_go//aws:go_default_library",
-        "@com_github_aws_aws_sdk_go//aws/session:go_default_library",
-        "@com_github_aws_aws_sdk_go//service/s3:go_default_library",
-        "@com_github_gebn_go_stamp//:go_default_library",
+        "//backup",
+        "@com_github_alecthomas_kingpin//:kingpin",
+        "@com_github_aws_aws_sdk_go//aws",
+        "@com_github_aws_aws_sdk_go//aws/session",
+        "@com_github_aws_aws_sdk_go//service/s3",
+        "@com_github_gebn_go_stamp_v2//:go-stamp",
     ],
 )
 
 go_binary(
     name = "plexbackup",
-    embed = [":go_default_library"],
+    embed = [":plexbackup_lib"],
     pure = "on",
     static = "on",
     visibility = ["//visibility:public"],
@@ -30,7 +30,7 @@ go_binary(
 
 pkg_tar(
     name = "archive",
+    srcs = [":plexbackup"],
     extension = "tar.gz",
     package_dir = "plexbackup",
-    srcs = [":plexbackup"],
 )
