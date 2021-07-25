@@ -1,6 +1,6 @@
 # Plex Backup
 
-[![Build Status](https://travis-ci.org/gebn/plexbackup.svg?branch=master)](https://travis-ci.org/gebn/plexbackup)
+[![CI](https://github.com/gebn/plexbackup/actions/workflows/build.yaml/badge.svg)](https://github.com/gebn/plexbackup/actions/workflows/build.yaml)
 [![GoDoc](https://godoc.org/github.com/gebn/plexbackup?status.svg)](https://godoc.org/github.com/gebn/plexbackup)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gebn/plexbackup)](https://goreportcard.com/report/github.com/gebn/plexbackup)
 
