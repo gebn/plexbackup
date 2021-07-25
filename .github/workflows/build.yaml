@@ -44,8 +44,12 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        path: assets/
-    - name: Generate checksums
+        path: artifacts/
+    - name: Build assets directory
+      run: |
+        mkdir assets/
+        mv artifacts/*.tar.gz/* assets/
+    - name: Calculate checksums
       run: sha256sum * > sha256sums.txt
       working-directory: assets
     - name: Debug
