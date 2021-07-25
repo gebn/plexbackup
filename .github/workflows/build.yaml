@@ -4,8 +4,18 @@ on:
 - pull_request
 - workflow_dispatch
 jobs:
+  pre:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Determine version
+      run: |
+        readonly GIT_DESCRIBE=$(git describe --always --tags --dirty)
+        echo "version=${GIT_DESCRIBE#v}" >> $GITHUB_ENV
   build:
     runs-on: ubuntu-latest
+    needs: pre
     strategy:
       matrix:
         toolchain:
@@ -13,18 +23,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Determine package version
-      run: |
-        readonly GIT_DESCRIBE=$(git describe --always --tags --dirty)
-        echo $GIT_DESCRIBE
-        echo "pkg_version=${GIT_DESCRIBE#v}" >> $GITHUB_ENV
     - name: Build
       run: |
         bazelisk build --config=ci --platforms @io_bazel_rules_go//go/toolchain:${{ matrix.toolchain }} //:archive
         echo "archive=$(bazelisk info bazel-bin)/archive.tar.gz" >> $GITHUB_ENV
-        echo $pkg_version
     - name: Upload binary artifact
       uses: actions/upload-artifact@v2
       with:
-        name: plexbackup-${{ env.pkg_version }}-${{ matrix.toolchain }}.tar.gz
+        name: plexbackup-${{ env.version }}-${{ matrix.toolchain }}.tar.gz
         path: ${{ env.archive }}
