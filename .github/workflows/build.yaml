@@ -43,17 +43,19 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        path: artifacts
+        path: assets/
+    - name: Generate checksums
+      run: sha256sum * > sha256sums.txt
+      working-directory: assets
     - name: Debug
       run: |
-        ls -lhR artifacts/
+        ls -lhR assets/
         echo "${{ needs.version.outputs.version }}"
     #- name: Release
     #  uses: softprops/action-gh-release@v1
     #  with:
     #    files: |
-    #      Release.txt
-    #      LICENSE
+    #      artifacts/*
     #  env:
     #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
