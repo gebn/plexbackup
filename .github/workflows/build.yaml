@@ -29,11 +29,12 @@ jobs:
     - name: Build
       run: |
         bazelisk build --config=ci --platforms @io_bazel_rules_go//go/toolchain:${{ matrix.toolchain }} //:archive
-        echo "archive=$(bazelisk info bazel-bin)/archive.tar.gz" >> $GITHUB_ENV
+        echo "archive=plexbackup-${{ needs.version.outputs.version }}-${{ matrix.toolchain }}.tar.gz" >> $GITHUB_ENV
+        mv "$(bazelisk info bazel-bin)/archive.tar.gz" "${{ env.archive }}"
     - name: Upload binary artifact
       uses: actions/upload-artifact@v2
       with:
-        name: plexbackup-${{ needs.version.outputs.version }}-${{ matrix.toolchain }}.tar.gz
+        name: ${{ env.archive }}
         path: ${{ env.archive }}
   release:
     runs-on: ubuntu-latest
