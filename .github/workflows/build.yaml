@@ -6,10 +6,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+        - linux_amd64
+        - linux_arm
+        - linux_arm64
+        - windows_amd64
+        - darwin_amd64
     steps:
-    - uses: actions/checkout@v2
-    - run: |
-        bazelisk build --config=ci //...
-        mkdir out
-        bin/release out
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build
+      run: |
+        readonly DESCRIBE=$(git describe --always --tags --dirty)
+        readonly VERSION=${DESCRIBE#v}
+        bazelisk build --config=ci --platforms @io_bazel_rules_go//go/toolchain:${{ matrix.toolchain }} //:archive
         bazelisk run //:plexbackup -- --version
+        mv $(bazelisk info bazel-bin)/archive.tar.gz plexbackup-${VERSION}-${{ matrix.toolchain }}.tar.gz
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.toolchain }}
+        path: plexbackup-${VERSION}-${{ matrix.toolchain }}.tar.gz
