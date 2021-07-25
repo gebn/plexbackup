@@ -17,10 +17,11 @@ jobs:
       run: |
         readonly DESCRIBE=$(git describe --always --tags --dirty)
         readonly VERSION=${DESCRIBE#v}
+        echo "version=$VERSION" >> $GITHUB_ENV
         bazelisk build --config=ci --platforms @io_bazel_rules_go//go/toolchain:${{ matrix.toolchain }} //:archive
-        mv $(bazelisk info bazel-bin)/archive.tar.gz plexbackup-${VERSION}-${{ matrix.toolchain }}.tar.gz
+        echo "archive=$(bazelisk info bazel-bin)/archive.tar.gz" >> $GITHUB_ENV
     - name: Archive artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.toolchain }}
-        path: plexbackup-*-${{ matrix.toolchain }}.tar.gz
+        name: plexbackup-${{ env.version }}-${{ matrix.toolchain }}.tar.gz
+        path: ${{ env.archive }}
