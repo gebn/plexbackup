@@ -18,7 +18,6 @@ jobs:
         readonly DESCRIBE=$(git describe --always --tags --dirty)
         readonly VERSION=${DESCRIBE#v}
         bazelisk build --config=ci --platforms @io_bazel_rules_go//go/toolchain:${{ matrix.toolchain }} //:archive
-        bazelisk run //:plexbackup -- --version
         mv $(bazelisk info bazel-bin)/archive.tar.gz plexbackup-${VERSION}-${{ matrix.toolchain }}.tar.gz
     - name: Archive artifacts
       uses: actions/upload-artifact@v2
