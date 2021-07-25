@@ -33,7 +33,7 @@ jobs:
     - name: Build
       run: |
         bazelisk build --config=ci --platforms @io_bazel_rules_go//go/toolchain:${{ matrix.toolchain }} //:plexbackup
-        echo "binary=$(bazelisk run --config=ci --run_under 'echo ' //:plexbackup)" >> $GITHUB_ENV
+        echo "binary=$(bazelisk run --config=ci --platforms @io_bazel_rules_go//go/toolchain:${{ matrix.toolchain }} --run_under 'echo ' //:plexbackup)" >> $GITHUB_ENV
     - name: Package
       run: |
         artifact_dir=plexbackup-${{ needs.version.outputs.version }}-${{ matrix.toolchain }}
