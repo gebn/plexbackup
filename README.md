@@ -1,7 +1,7 @@
 # Plex Backup
 
-[![CI](https://github.com/gebn/plexbackup/actions/workflows/build.yaml/badge.svg)](https://github.com/gebn/plexbackup/actions/workflows/build.yaml)
-[![GoDoc](https://godoc.org/github.com/gebn/plexbackup?status.svg)](https://godoc.org/github.com/gebn/plexbackup)
+[![CI](https://github.com/gebn/plexbackup/actions/workflows/ci.yaml/badge.svg)](https://github.com/gebn/plexbackup/actions/workflows/ci.yaml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/gebn/plexbackup.svg)](https://pkg.go.dev/github.com/gebn/plexbackup)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gebn/plexbackup)](https://goreportcard.com/report/github.com/gebn/plexbackup)
 
 Backs up the [`Plex Media Server`](https://www.plex.tv) directory to S3.
