@@ -3,14 +3,15 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"os"
 
 	"github.com/gebn/plexbackup/backup"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gebn/go-stamp/v2"
 )
 
@@ -36,22 +37,28 @@ var (
 )
 
 func main() {
+	if err := actualMain(context.Background()); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+func actualMain(ctx context.Context) error {
 	kingpin.Version(stamp.Summary())
 	kingpin.Parse()
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion(*region),
+		config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled))
+	if err != nil {
+		return fmt.Errorf("failed to initialise AWS SDK: %w", err)
+	}
 
-	sess := session.Must(session.NewSession(&aws.Config{
-		Region: region,
-	}))
-	svc := s3.New(sess)
-
-	opts := &backup.Opts{
+	s3client := s3.NewFromConfig(cfg)
+	return backup.Run(ctx, s3client, &backup.Opts{
 		NoPause:   *noPause,
 		Service:   *service,
 		Directory: *directory,
 		Bucket:    *bucket,
 		Prefix:    *prefix,
-	}
-	if err := backup.Run(context.Background(), svc, opts); err != nil {
-		log.Fatal(err)
-	}
+	})
 }

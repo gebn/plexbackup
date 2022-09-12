@@ -1,24 +1,6 @@
 // Package backup creates and uploads Plex Media Server backups to S3.
-//
-// Example
-//
-// The following snippet shows how to perform a vanilla backup. Plex will be
-// stopped before the backup begins, and started again after it finishes.
-//
-//   sess := session.Must(session.NewSession(&aws.Config{
-//   	Region: "eu-west-2",
-//   }))
-//   svc := s3.New(sess)
-//
-//   opts := &backup.Opts{
-//   	Service:   "plexmediaserver.service",
-//   	Directory: "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server",
-//   	Bucket:    "thebrightons-backup-euw2",
-//   	Prefix:    "plex/newton/",
-//   }
-//   if err := backup.Run(context.Background(), svc, opts); err != nil {
-//   	log.Fatal(err)
-//   }
+// Plex will be stopped before the backup begins, and started again after it
+// finishes.
 package backup
 
 import (
@@ -32,8 +14,9 @@ import (
 
 	"github.com/gebn/plexbackup/internal/pkg/countingreader"
 
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	s3manager "github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 const (
@@ -74,8 +57,8 @@ type Opts struct {
 // oldestObject returns the object with the oldest LastModified attribute within
 // a given bucket under a given prefix, or nil if no objects exist there. It
 // assumes the prefix contains <=1000 objects (no pagination is attempted).
-func oldestObject(ctx context.Context, svc *s3.S3, bucket, prefix string) (*s3.Object, error) {
-	result, err := svc.ListObjectsWithContext(ctx, &s3.ListObjectsInput{
+func oldestObject(ctx context.Context, client *s3.Client, bucket, prefix string) (*s3types.Object, error) {
+	result, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 		Bucket: &bucket,
 		Prefix: &prefix,
 	})
@@ -83,10 +66,10 @@ func oldestObject(ctx context.Context, svc *s3.S3, bucket, prefix string) (*s3.O
 		return nil, err
 	}
 
-	var oldest *s3.Object
+	var oldest *s3types.Object
 	for _, object := range result.Contents {
 		if oldest == nil || object.LastModified.Before(*oldest.LastModified) {
-			oldest = object
+			oldest = &object
 		}
 	}
 	return oldest, nil
@@ -103,7 +86,7 @@ func findGzCommand() string {
 
 // backup performs the actual archive, compression and upload of the backup. It
 // blocks until the operation is complete.
-func (o *Opts) backup(ctx context.Context, svc *s3.S3) error {
+func (o *Opts) backup(ctx context.Context, client *s3.Client) error {
 	tar := exec.CommandContext(ctx,
 		"tar", "-cf", "-",
 		"-C", filepath.Dir(o.Directory),
@@ -139,9 +122,9 @@ func (o *Opts) backup(ctx context.Context, svc *s3.S3) error {
 	// N.B. tar interprets names containing colons as network locations, so it
 	// must be piped in, e.g. tar -xzf - < name:with:colons.tar.xz.
 	key := o.Prefix + time.Now().UTC().Format(time.RFC3339) + ".tar.gz"
-	uploader := s3manager.NewUploaderWithClient(svc)
+	uploader := s3manager.NewUploader(client)
 	reader := countingreader.New(gzStdout)
-	_, uploadErr := uploader.UploadWithContext(ctx, &s3manager.UploadInput{
+	_, uploadErr := uploader.Upload(ctx, &s3.PutObjectInput{
 		Bucket: &o.Bucket,
 		Key:    &key,
 		Body:   reader,
@@ -168,8 +151,8 @@ func (o *Opts) backup(ctx context.Context, svc *s3.S3) error {
 
 // Run stops Plex, performs the backup, then starts Plex again. It should
 // ideally be run soon after the server maintenance period.
-func Run(ctx context.Context, svc *s3.S3, o *Opts) error {
-	oldest, err := oldestObject(ctx, svc, o.Bucket, o.Prefix)
+func Run(ctx context.Context, client *s3.Client, o *Opts) error {
+	oldest, err := oldestObject(ctx, client, o.Bucket, o.Prefix)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
 	}
@@ -180,7 +163,7 @@ func Run(ctx context.Context, svc *s3.S3, o *Opts) error {
 		}
 	}
 
-	if err = o.backup(ctx, svc); err != nil {
+	if err = o.backup(ctx, client); err != nil {
 		return err
 	}
 
@@ -194,7 +177,7 @@ func Run(ctx context.Context, svc *s3.S3, o *Opts) error {
 	}
 
 	if oldest != nil {
-		_, err := svc.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
+		_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{
 			Bucket: &o.Bucket,
 			Key:    oldest.Key,
 		})
