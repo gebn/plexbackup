@@ -28,7 +28,7 @@ jobs:
         go-version: 1.19.4
     - run: make dist
     - id: vars
-      run: echo "::set-output name=distpath::$(make distpath)"
+      run: echo "distpath=$(make distpath)" >> $GITHUB_OUTPUT
     - uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.vars.outputs.distpath }}
