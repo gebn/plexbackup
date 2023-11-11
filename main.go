@@ -3,12 +3,13 @@ package main
 
 import (
 	"context"
+	"errors"
+	"flag"
 	"fmt"
 	"os"
 
 	"github.com/gebn/plexbackup/backup"
 
-	"github.com/alecthomas/kingpin"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -16,24 +17,17 @@ import (
 )
 
 var (
-	bucket = kingpin.Flag("bucket", "Name of the S3 bucket to upload the backup to.").
-		Required().
-		String()
-	region = kingpin.Flag("region", "Region of the --bucket.").
-		Required().
-		String()
-	prefix = kingpin.Flag("prefix", `Location within the bucket to upload to. This will be suffixed with <RFC3339 date>.tar.gz, e.g. "2019-01-06T22:38:21Z.tar.gz".`).
-		Default("plex/").
-		String()
+	ErrNoBucket = errors.New("bucket name must be specified with --bucket")
 
-	noPause = kingpin.Flag("no-pause", "Do not stop Plex while the backup is performed. This is not recommended, as it risks an inconsistent backup.").
-		Bool()
-	service = kingpin.Flag("service", "Name of the Plex systemd unit to stop while the backup is performed.").
-		Default("plexmediaserver.service").
-		String()
-	directory = kingpin.Flag("directory", "Location of the 'Plex Media Server' directory to back up.").
-			Default("/var/lib/plexmediaserver/Library/Application Support/Plex Media Server").
-			String() // ExistingDir() breaks --version if does not exist (#261)
+	version = flag.Bool("version", false, "Display software version and exit")
+
+	bucket = flag.String("bucket", "", "Name of the S3 bucket to upload the backup to.")
+	region = flag.String("region", "us-east-1", "Region of the --bucket.")
+	prefix = flag.String("prefix", "plex/", `Location within the bucket to upload to. This will be suffixed with <RFC3339 date>.tar.gz, e.g. "2019-01-06T22:38:21Z.tar.gz".`)
+
+	noPause   = flag.Bool("no-pause", false, "Do not stop Plex while the backup is performed. This is not recommended, as it risks an inconsistent backup.")
+	service   = flag.String("service", "plexmediaserver.service", "Name of the Plex systemd unit to stop while the backup is performed.")
+	directory = flag.String("directory", "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server", "Location of the 'Plex Media Server' directory to back up.")
 )
 
 func main() {
@@ -44,8 +38,17 @@ func main() {
 }
 
 func actualMain(ctx context.Context) error {
-	kingpin.Version(stamp.Summary())
-	kingpin.Parse()
+	flag.Parse()
+
+	if *version {
+		fmt.Println(stamp.Summary())
+		return nil
+	}
+
+	if *bucket == "" {
+		return ErrNoBucket
+	}
+
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(*region),
 		config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled))
