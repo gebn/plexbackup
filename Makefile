@@ -1,11 +1,14 @@
 OUT := plexbackup
 
-# ensure these are set outside CI context
+# Ensure these are set outside CI context.
 GOOS := $(shell go env GOOS)
 GOARCH := $(shell go env GOARCH)
 GOARM := $(shell go env GOARM)
 
 VERSION := $(shell git describe --always --tags --dirty)
+
+# We want to ignore any C/C++ toolchain on dev machines.
+export CGO_ENABLED = 0
 
 arm := $(GOARM)
 ifneq ($(arm),)
