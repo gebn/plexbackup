@@ -124,12 +124,8 @@ func (o *Opts) backup(ctx context.Context, logger *slog.Logger, client *s3.Clien
 
 	start := time.Now()
 
-	if err = tar.Start(); err != nil {
-		return fmt.Errorf("failed to start tar: %w", err)
-	}
-
-	if err = tar.Wait(); err != nil {
-		return fmt.Errorf("tar completed with error: %w", err)
+	if err = tar.Run(); err != nil {
+		return fmt.Errorf("tar failed with error: %w", err)
 	}
 
 	zstdResult := <-compressResultChan
