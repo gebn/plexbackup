@@ -166,6 +166,7 @@ func Run(ctx context.Context, logger *slog.Logger, client *s3.Client, o *Opts) e
 	}
 
 	if !o.NoPause {
+		logger.DebugContext(ctx, "stopping Plex")
 		if err = exec.CommandContext(ctx, "sudo", "systemctl", "stop", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to stop plex: %w", err)
 		}
@@ -180,6 +181,7 @@ func Run(ctx context.Context, logger *slog.Logger, client *s3.Client, o *Opts) e
 	// allow us to report an error - this way the caller can be confident Plex
 	// is running if they get back a nil error.
 	if !o.NoPause {
+		logger.DebugContext(ctx, "starting Plex")
 		if err = exec.CommandContext(ctx, "sudo", "systemctl", "start", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to start plex: %w", err)
 		}
