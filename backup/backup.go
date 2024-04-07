@@ -169,6 +169,7 @@ func Run(ctx context.Context, logger *slog.Logger, client *s3.Client, o *Opts) e
 		if err = exec.CommandContext(ctx, "sudo", "systemctl", "stop", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to stop plex: %w", err)
 		}
+		logger.DebugContext(ctx, "stopped Plex")
 	}
 
 	if err = o.backup(ctx, logger, client); err != nil {
@@ -182,6 +183,7 @@ func Run(ctx context.Context, logger *slog.Logger, client *s3.Client, o *Opts) e
 		if err = exec.CommandContext(ctx, "sudo", "systemctl", "start", o.Service).Run(); err != nil {
 			return fmt.Errorf("failed to start plex: %w", err)
 		}
+		logger.DebugContext(ctx, "started Plex")
 	}
 
 	if oldest != nil {
