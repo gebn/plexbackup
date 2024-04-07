@@ -59,9 +59,11 @@ Note logs are written to `stderr`, rather than `stdout`.
 ## Usage
 
     $ plexbackup --help
-    Usage of ./plexbackup:
+    Usage of plexbackup:
       -bucket string
             name of the S3 bucket to upload the backup to
+      -debug
+            enable debug logging in a human-readable format
       -directory string
             path of the 'Plex Media Server' directory to back up (default "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server")
       -no-pause
