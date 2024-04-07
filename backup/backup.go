@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,11 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/klauspost/compress/zstd"
-)
-
-const (
-	// gibibyteBytes is the number of bytes in a GiB.
-	gibibyteBytes = 1024 * 1024 * 1024
 )
 
 // Opts encapsulates parameters for backing up Plex's database.
@@ -79,7 +74,7 @@ func oldestObject(ctx context.Context, client *s3.Client, bucket, prefix string)
 
 // backup performs the actual archive, compression and upload of the backup. It
 // blocks until the operation is complete.
-func (o *Opts) backup(ctx context.Context, client *s3.Client) error {
+func (o *Opts) backup(ctx context.Context, logger *slog.Logger, client *s3.Client) error {
 	tar := exec.CommandContext(ctx,
 		"tar", "-cf", "-",
 		"-C", filepath.Dir(o.Directory),
@@ -104,14 +99,14 @@ func (o *Opts) backup(ctx context.Context, client *s3.Client) error {
 	}
 
 	type compressResult struct {
-		UncompressedBytes int64
+		UncompressedBytes uint64
 		Error             error
 	}
 
 	compressResultChan := make(chan compressResult)
 	go func() {
 		uncompressedBytes, err := enc.ReadFrom(tarStdoutReader)
-		compressResultChan <- compressResult{uncompressedBytes, err}
+		compressResultChan <- compressResult{uint64(uncompressedBytes), err}
 	}()
 
 	uploader := s3manager.NewUploader(client)
@@ -153,38 +148,39 @@ func (o *Opts) backup(ctx context.Context, client *s3.Client) error {
 		return fmt.Errorf("failed to upload new backup: %w", uploadErr)
 	}
 
-	elapsed := time.Since(start)
-	gib := float64(reader.ReadBytes) / float64(gibibyteBytes)
-	log.Printf("backed up %.3f GiB to %v in %v, %.3f GiB uncompressed",
-		gib, key, elapsed.Round(time.Millisecond), float64(zstdResult.UncompressedBytes)/float64(gibibyteBytes))
+	logger.InfoContext(ctx, "uploaded backup",
+		slog.String("key", key),
+		slog.Duration("elapsed", time.Since(start)),
+		slog.Uint64("uncompressed_bytes", zstdResult.UncompressedBytes),
+		slog.Uint64("compressed_bytes", reader.ReadBytes))
 
 	return nil
 }
 
 // Run stops Plex, performs the backup, then starts Plex again. It should
 // ideally be run soon after the server maintenance period.
-func Run(ctx context.Context, client *s3.Client, o *Opts) error {
+func Run(ctx context.Context, logger *slog.Logger, client *s3.Client, o *Opts) error {
 	oldest, err := oldestObject(ctx, client, o.Bucket, o.Prefix)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve oldest backup: %v", err)
+		return fmt.Errorf("failed to retrieve oldest backup: %w", err)
 	}
 
 	if !o.NoPause {
 		if err = exec.CommandContext(ctx, "sudo", "systemctl", "stop", o.Service).Run(); err != nil {
-			return fmt.Errorf("failed to stop plex: %v", err)
+			return fmt.Errorf("failed to stop plex: %w", err)
 		}
 	}
 
-	if err = o.backup(ctx, client); err != nil {
+	if err = o.backup(ctx, logger, client); err != nil {
 		return err
 	}
 
-	// we could have deferred this after stopping plex, however this would not
+	// We could have deferred this after stopping plex, however this would not
 	// allow us to report an error - this way the caller can be confident Plex
-	// is running if they get back a nil error
+	// is running if they get back a nil error.
 	if !o.NoPause {
 		if err = exec.CommandContext(ctx, "sudo", "systemctl", "start", o.Service).Run(); err != nil {
-			return fmt.Errorf("failed to start plex: %v", err)
+			return fmt.Errorf("failed to start plex: %w", err)
 		}
 	}
 
@@ -194,8 +190,10 @@ func Run(ctx context.Context, client *s3.Client, o *Opts) error {
 			Key:    oldest.Key,
 		})
 		if err != nil {
-			// not regarded as significant enough to report
-			log.Printf("failed to delete %v: %v\n", oldest, err)
+			// Not regarded as significant enough to report.
+			logger.WarnContext(ctx, "failed to delete old backup",
+				slog.String("key", *oldest.Key),
+				slog.String("error", err.Error()))
 		}
 	}
 

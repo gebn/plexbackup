@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/gebn/plexbackup/backup"
@@ -20,6 +21,7 @@ var (
 	ErrNoBucket = errors.New("bucket name must be specified with -bucket")
 
 	version = flag.Bool("version", false, "display software version and exit")
+	isDebug = flag.Bool("debug", false, "enable debug logging in a human-readable format")
 
 	bucket = flag.String("bucket", "", "name of the S3 bucket to upload the backup to")
 	region = flag.String("region", "us-east-1", "region of the -bucket")
@@ -31,13 +33,13 @@ var (
 )
 
 func main() {
-	if err := actualMain(context.Background()); err != nil {
+	if err := app(context.Background()); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func actualMain(ctx context.Context) error {
+func app(ctx context.Context) error {
 	flag.Parse()
 
 	if *version {
@@ -49,6 +51,9 @@ func actualMain(ctx context.Context) error {
 		return ErrNoBucket
 	}
 
+	logger := buildLogger(*isDebug)
+	logger.DebugContext(ctx, "launching", slog.String("version", stamp.Version))
+
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(*region),
 		config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled))
@@ -57,11 +62,24 @@ func actualMain(ctx context.Context) error {
 	}
 
 	s3client := s3.NewFromConfig(cfg)
-	return backup.Run(ctx, s3client, &backup.Opts{
+	return backup.Run(ctx, logger, s3client, &backup.Opts{
 		NoPause:   *noPause,
 		Service:   *service,
 		Directory: *directory,
 		Bucket:    *bucket,
 		Prefix:    *prefix,
 	})
+}
+
+// buildLogger creates a suitable logger for the provided mode. If debugging is
+// disabled, which is the usual case, the logger is configured for production:
+// JSON format at info level. If debugging is enabled, we optimise for
+// human-readable logs, using logfmt at debug level.
+func buildLogger(isDebug bool) *slog.Logger {
+	if isDebug {
+		return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		}))
+	}
+	return slog.New(slog.NewJSONHandler(os.Stderr, nil))
 }
