@@ -17,17 +17,17 @@ import (
 )
 
 var (
-	ErrNoBucket = errors.New("bucket name must be specified with --bucket")
+	ErrNoBucket = errors.New("bucket name must be specified with -bucket")
 
-	version = flag.Bool("version", false, "Display software version and exit")
+	version = flag.Bool("version", false, "display software version and exit")
 
-	bucket = flag.String("bucket", "", "Name of the S3 bucket to upload the backup to.")
-	region = flag.String("region", "us-east-1", "Region of the --bucket.")
-	prefix = flag.String("prefix", "plex/", `Location within the bucket to upload to. This will be suffixed with <RFC3339 date>.tar.gz, e.g. "2019-01-06T22:38:21Z.tar.gz".`)
+	bucket = flag.String("bucket", "", "name of the S3 bucket to upload the backup to")
+	region = flag.String("region", "us-east-1", "region of the -bucket")
+	prefix = flag.String("prefix", "plex/", `suffixed with "<RFC3339 date>.tar.zst" to form the upload key`)
 
-	noPause   = flag.Bool("no-pause", false, "Do not stop Plex while the backup is performed. This is not recommended, as it risks an inconsistent backup.")
-	service   = flag.String("service", "plexmediaserver.service", "Name of the Plex systemd unit to stop while the backup is performed.")
-	directory = flag.String("directory", "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server", "Location of the 'Plex Media Server' directory to back up.")
+	noPause   = flag.Bool("no-pause", false, "suppresses stopping Plex while the backup is performed, risks an inconsistent backup")
+	service   = flag.String("service", "plexmediaserver.service", "name of the Plex systemd unit to stop, redundant if -no-pause used")
+	directory = flag.String("directory", "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server", "path of the 'Plex Media Server' directory to back up")
 )
 
 func main() {

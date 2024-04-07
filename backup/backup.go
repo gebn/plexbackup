@@ -6,6 +6,7 @@ package backup
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -17,6 +18,7 @@ import (
 	s3manager "github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/klauspost/compress/zstd"
 )
 
 const (
@@ -45,8 +47,8 @@ type Opts struct {
 	// Bucket is the name of the S3 bucket to upload the backup to.
 	Bucket string
 
-	// Prefix is prepended to "<RFC3339 date>.tar.gz" to form the path of the
-	// backup object, e.g. "2019-01-06T22:38:21Z.tar.gz". N.B. no slash is
+	// Prefix is prepended to "<RFC3339 date>.tar.zst" to form the path of the
+	// backup object, e.g. "2019-01-06T22:38:21Z.tar.zst". N.B. no slash is
 	// automatically added to the end of the prefix. This is also the prefix
 	// under which we query for old backups - if it changes, unless the new
 	// value is a prefix of the old one, the previous backup will not be
@@ -75,15 +77,6 @@ func oldestObject(ctx context.Context, client *s3.Client, bucket, prefix string)
 	return oldest, nil
 }
 
-// gzCommand determines the correct implementation of gzip to use: if pigz is
-// available, it is preferred, otherwise we fall back on gz, assuming it exists.
-func findGzCommand() string {
-	if _, err := exec.LookPath("pigz"); err == nil {
-		return "pigz"
-	}
-	return "gz"
-}
-
 // backup performs the actual archive, compression and upload of the backup. It
 // blocks until the operation is complete.
 func (o *Opts) backup(ctx context.Context, client *s3.Client) error {
@@ -96,55 +89,74 @@ func (o *Opts) backup(ctx context.Context, client *s3.Client) error {
 		"--exclude", "plexmediaserver.pid",
 		filepath.Base(o.Directory))
 	tar.Stderr = os.Stderr
-
-	gz := exec.CommandContext(ctx, findGzCommand(), "-c")
-	gz.Stderr = os.Stderr
-	var err error
-	gz.Stdin, err = tar.StdoutPipe()
+	tarStdoutReader, err := tar.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("failed to get stdout from tar: %v", err)
+		return fmt.Errorf("failed to get stdout pipe from tar: %w", err)
 	}
 
-	gzStdout, err := gz.StdoutPipe()
+	// Turns the bytes written by zstd into something that can be read by the
+	// AWS SDK.
+	zstdReader, zstdWriter := io.Pipe()
+
+	enc, err := zstd.NewWriter(zstdWriter)
 	if err != nil {
-		return fmt.Errorf("failed to get stdout from gz: %v", err)
+		return err
 	}
+
+	type compressResult struct {
+		UncompressedBytes int64
+		Error             error
+	}
+
+	compressResultChan := make(chan compressResult)
+	go func() {
+		uncompressedBytes, err := enc.ReadFrom(tarStdoutReader)
+		compressResultChan <- compressResult{uncompressedBytes, err}
+	}()
+
+	uploader := s3manager.NewUploader(client)
+	key := o.Prefix + time.Now().UTC().Format(time.RFC3339) + ".tar.zst"
+	reader := countingreader.New(zstdReader)
+	uploadErr := make(chan error)
+	go func() {
+		_, err := uploader.Upload(ctx, &s3.PutObjectInput{
+			Bucket: &o.Bucket,
+			Key:    &key,
+			Body:   reader,
+		})
+		uploadErr <- err
+	}()
 
 	start := time.Now()
 
 	if err = tar.Start(); err != nil {
-		return fmt.Errorf("failed to start tar: %v", err)
-	}
-	if err = gz.Start(); err != nil {
-		return fmt.Errorf("failed to start gz: %v", err)
+		return fmt.Errorf("failed to start tar: %w", err)
 	}
 
-	// N.B. tar interprets names containing colons as network locations, so it
-	// must be piped in, e.g. tar -xzf - < name:with:colons.tar.xz.
-	key := o.Prefix + time.Now().UTC().Format(time.RFC3339) + ".tar.gz"
-	uploader := s3manager.NewUploader(client)
-	reader := countingreader.New(gzStdout)
-	_, uploadErr := uploader.Upload(ctx, &s3.PutObjectInput{
-		Bucket: &o.Bucket,
-		Key:    &key,
-		Body:   reader,
-	})
-
-	if err = gz.Wait(); err != nil {
-		return fmt.Errorf("gz completed improperly: %v", err)
-	}
 	if err = tar.Wait(); err != nil {
-		return fmt.Errorf("tar completed improperly: %v", err)
+		return fmt.Errorf("tar completed with error: %w", err)
 	}
 
-	if uploadErr != nil {
-		return fmt.Errorf("failed to upload new backup: %v", uploadErr)
+	zstdResult := <-compressResultChan
+	if err := zstdResult.Error; err != nil {
+		return fmt.Errorf("zstd completed with error: %w", err)
+	}
+
+	if err := enc.Close(); err != nil {
+		return fmt.Errorf("failed to close zstd stream: %w", err)
+	}
+
+	// Should indicate to the S3 uploader that we are done, so it returns.
+	zstdWriter.Close()
+
+	if <-uploadErr != nil {
+		return fmt.Errorf("failed to upload new backup: %w", uploadErr)
 	}
 
 	elapsed := time.Since(start)
 	gib := float64(reader.ReadBytes) / float64(gibibyteBytes)
-	log.Printf("backed up %.3f GiB to %v in %v",
-		gib, key, elapsed.Round(time.Millisecond))
+	log.Printf("backed up %.3f GiB to %v in %v, %.3f GiB uncompressed",
+		gib, key, elapsed.Round(time.Millisecond), float64(zstdResult.UncompressedBytes)/float64(gibibyteBytes))
 
 	return nil
 }
