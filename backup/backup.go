@@ -194,6 +194,9 @@ func Run(ctx context.Context, logger *slog.Logger, client *s3.Client, o *Opts) e
 			logger.WarnContext(ctx, "failed to delete old backup",
 				slog.String("key", *oldest.Key),
 				slog.String("error", err.Error()))
+		} else {
+			logger.DebugContext(ctx, "deleted oldest backup",
+				slog.String("key", *oldest.Key))
 		}
 	}
 
