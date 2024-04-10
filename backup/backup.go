@@ -140,8 +140,8 @@ func (o *Opts) backup(ctx context.Context, logger *slog.Logger, client *s3.Clien
 	// Should indicate to the S3 uploader that we are done, so it returns.
 	zstdWriter.Close()
 
-	if <-uploadErr != nil {
-		return fmt.Errorf("failed to upload new backup: %w", uploadErr)
+	if err := <-uploadErr; err != nil {
+		return fmt.Errorf("failed to upload new backup: %w", err)
 	}
 
 	logger.InfoContext(ctx, "uploaded backup",
